@@ -136,6 +136,21 @@
     animation: blink 1s step-start infinite;
   }
 
+  #retry-btn {
+    display: none;
+    margin-top: 4px;
+    padding: 6px 20px;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 13px;
+    font-weight: bold;
+    background: #c0c0c0;
+    border: 3px outset #ffffff;
+    color: #000000;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #retry-btn:active { border-style: inset; }
+
   .marquee-bar {
     position: absolute;
     bottom: 0;
@@ -193,6 +208,7 @@
   <div id="pct"></div>
   <div id="status">starting up...</div>
   <div id="error-msg"></div>
+  <button id="retry-btn" onclick="retrySetup()">↺ RETRY</button>
 
   <div class="bottom-bar">
     <span class="status-chip">🔒 SECURE</span>
@@ -210,18 +226,23 @@ const bar = document.getElementById('bar')
 const statusEl = document.getElementById('status')
 const pctEl = document.getElementById('pct')
 const errorEl = document.getElementById('error-msg')
+const retryBtn = document.getElementById('retry-btn')
 
 ipcRenderer.on('status', (e, { msg, progress, mode }) => {
   if (mode === 'error') {
     statusEl.style.display = 'none'
     errorEl.style.display = 'block'
     errorEl.textContent = '⚠️ ERROR: ' + msg
+    retryBtn.style.display = 'block'
     bar.classList.remove('indeterminate')
     bar.style.width = '0%'
     pctEl.textContent = ''
     return
   }
 
+  errorEl.style.display = 'none'
+  retryBtn.style.display = 'none'
+  statusEl.style.display = 'block'
   statusEl.textContent = '>>> ' + msg.toUpperCase() + '...'
 
   if (mode === 'download' && progress !== null) {
@@ -233,6 +254,10 @@ ipcRenderer.on('status', (e, { msg, progress, mode }) => {
     pctEl.textContent = ''
   }
 })
+
+function retrySetup() {
+  ipcRenderer.send('retry-setup')
+}
 </script>
 </body>
 </html>
