@@ -2,386 +2,243 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>HuntwrGPT</title>
+<title>✨ HUNTWR GPT - THE OFFICIAL AI WEBSITE ✨</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  :root {
-    --bg: #faf9f7;
-    --bg2: #f4f2ee;
-    --border: #e8e4dc;
-    --text: #1a1816;
-    --muted: #9a9488;
-    --subtle: #c8c2b8;
+  @keyframes rainbow {
+    0%   { color: #ff0000; } 16%  { color: #ff8800; }
+    33%  { color: #ffff00; } 50%  { color: #00ff00; }
+    66%  { color: #00ffff; } 83%  { color: #ff00ff; }
+    100% { color: #ff0000; }
+  }
+  @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  @keyframes neon-glow {
+    0%,100% { text-shadow: 0 0 4px #00ffff, 0 0 8px #00ffff; }
+    50%      { text-shadow: 0 0 16px #00ffff, 0 0 32px #00ffff; }
+  }
+  @keyframes marquee-scroll { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes bop {
+    0%,80%,100%{transform:translateY(0);opacity:0.4}
+    40%{transform:translateY(-4px);opacity:1}
+  }
+  @keyframes border-flash {
+    0%,100%{border-color:#ff00ff} 33%{border-color:#00ffff} 66%{border-color:#ffff00}
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Times New Roman', Times, serif;
+    background-color: #000022;
+    background-image:
+      radial-gradient(circle at 2px 2px, rgba(255,255,255,0.65) 1px, transparent 0),
+      radial-gradient(circle at 18px 18px, rgba(255,255,255,0.35) 0.5px, transparent 0);
+    background-size: 28px 28px;
+    color: #00ffff;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
     height: 100vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    -webkit-font-smoothing: auto;
   }
 
+  /* ── HEADER ── */
   #drag {
-    height: 38px;
+    height: 52px;
+    background: #000066;
+    border-bottom: 3px solid #ff00ff;
     -webkit-app-region: drag;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     padding-left: 80px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    gap: 12px;
   }
-  #drag span {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    font-variant: small-caps;
-  }
-  .nav-tabs {
-    margin-left: auto;
-    display: flex;
-    -webkit-app-region: no-drag;
-    height: 100%;
-  }
-  .nav-tab {
-    padding: 0 18px;
-    font-size: 11px;
-    color: var(--subtle);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    letter-spacing: 1px;
-    font-variant: small-caps;
-    border-left: 1px solid var(--border);
-    transition: all 0.1s;
-    font-family: 'Times New Roman', Times, serif;
-    background: none;
-    border-top: none;
-    border-right: none;
-    border-bottom: none;
-  }
-  .nav-tab:hover { color: var(--text); background: var(--bg2); }
-  .nav-tab.active { color: var(--text); background: var(--bg2); }
+  .title-star { font-size: 16px; display: inline-block; animation: spin 3s linear infinite; }
+  #drag .site-title { font-size: 15px; font-weight: bold; animation: rainbow 2s linear infinite; letter-spacing: 2px; text-transform: uppercase; }
+  .visitor-counter { font-size: 10px; color: #ffff00; border: 2px outset #c0c0c0; background: #000000; padding: 3px 8px; font-family: 'Courier New', monospace; letter-spacing: 1px; white-space: nowrap; }
+  .nav-tabs { margin-left: auto; display: flex; -webkit-app-region: no-drag; height: 100%; align-items: center; padding-right: 10px; gap: 6px; }
+  .nav-tab { padding: 5px 12px; font-size: 11px; font-weight: bold; font-family: 'Comic Sans MS', cursive; cursor: pointer; border: 3px outset #c0c0c0; background: #c0c0c0; color: #000000; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .nav-tab:hover { background: #d0d0d0; }
+  .nav-tab.active { border-style: inset; }
+  .nav-tab[data-view="chat"]     { background: #ff99ff; }
+  .nav-tab[data-view="memory"]   { background: #99ffff; }
+  .nav-tab[data-view="settings"] { background: #ffff99; }
+  .nav-tab[data-view="chat"].active     { background: #dd66dd; }
+  .nav-tab[data-view="memory"].active   { background: #66dddd; }
+  .nav-tab[data-view="settings"].active { background: #dddd66; }
 
-  #app { display: flex; flex: 1; overflow: hidden; position: relative; }
+  /* ── MARQUEE ── */
+  #marquee-bar { background: #000000; border-bottom: 2px solid #00ff00; height: 22px; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; }
+  #marquee-text { white-space: nowrap; font-size: 11px; color: #00ff00; font-family: 'Courier New', monospace; animation: marquee-scroll 22s linear infinite; display: inline-block; letter-spacing: 1px; }
 
-  #sidebar {
-    width: 190px;
-    background: var(--bg2);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 18px 12px 14px;
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-  .sidebar-label {
-    font-size: 9px;
-    color: var(--subtle);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    padding: 0 8px;
-    margin-bottom: 10px;
-    flex-shrink: 0;
-    font-variant: small-caps;
-  }
-  #thread-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-    min-height: 0;
-  }
-  .thread {
-    padding: 8px 10px;
-    border-radius: 3px;
-    font-size: 12px;
-    color: var(--muted);
-    cursor: pointer;
-    border: 1px solid transparent;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.12s;
-    font-style: italic;
-    flex-shrink: 0;
-  }
-  .thread:hover { background: var(--bg); color: var(--text); }
+  /* ── LAYOUT ── */
+  #app { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  #sidebar { width: 196px; background: #c0c0c0; border-right: 3px outset #c0c0c0; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .sidebar-titlebar { background: #000080; color: #ffffff; font-size: 11px; font-weight: bold; font-family: 'Comic Sans MS', cursive; padding: 4px 8px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  #sidebar-search { background: #ffffff; border: 2px inset #c0c0c0; padding: 4px 7px; font-size: 11px; font-family: 'Comic Sans MS', cursive; color: #000000; width: 100%; outline: none; flex-shrink: 0; }
+  #sidebar-search::placeholder { color: #808080; }
+  #thread-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 3px; gap: 2px; min-height: 0; scrollbar-width: auto; scrollbar-color: #808080 #c0c0c0; }
+  .thread { padding: 5px 8px; font-size: 11px; color: #000000; cursor: pointer; display: flex; align-items: center; gap: 4px; border: 2px outset #c0c0c0; background: #c0c0c0; font-family: 'Comic Sans MS', cursive; flex-shrink: 0; }
+  .thread:hover { background: #d4d0c8; border-color: #0000ff; }
   .thread:hover .del-thread { opacity: 1; }
-  .thread.active { background: var(--bg); border-color: var(--border); color: var(--text); }
+  .thread.active { border-style: inset; background: #a8a4a0; }
   .thread-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .del-thread {
-    opacity: 0;
-    background: none;
-    border: none;
-    color: var(--subtle);
-    cursor: pointer;
-    font-size: 14px;
-    line-height: 1;
-    padding: 0 2px;
-    transition: color 0.1s;
-    font-family: 'Times New Roman', Times, serif;
-    flex-shrink: 0;
-  }
-  .del-thread:hover { color: #c0392b; }
-  #new-chat {
-    margin-top: 10px;
-    padding: 9px 10px;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--muted);
-    font-size: 12px;
-    cursor: pointer;
-    font-family: 'Times New Roman', Times, serif;
-    font-style: italic;
-    text-align: left;
-    transition: all 0.12s;
-    width: 100%;
-    flex-shrink: 0;
-  }
-  #new-chat:hover { background: var(--bg); color: var(--text); border-color: var(--text); }
+  .del-thread { opacity: 0; background: #ff0000; border: 1px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 10px; font-weight: bold; padding: 0 4px; line-height: 1.4; font-family: 'Comic Sans MS', cursive; flex-shrink: 0; }
+  .del-thread:hover { background: #cc0000; }
+  #new-chat { margin: 6px; padding: 6px 8px; background: #00aa00; color: #ffffff; border: 3px outset #c0c0c0; font-size: 11px; font-weight: bold; font-family: 'Comic Sans MS', cursive; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+  #new-chat:active { border-style: inset; }
+  #new-chat:hover { background: #00cc00; }
+  .sidebar-footer { background: #000080; color: #ffff00; font-size: 9px; font-family: 'Courier New', monospace; padding: 3px 6px; text-align: center; flex-shrink: 0; letter-spacing: 1px; }
 
-  #chat-view {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 32px 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-  .msg { display: flex; flex-direction: column; max-width: 72%; }
+  /* ── CHAT ── */
+  #chat-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; scrollbar-color: #ff00ff #000022; }
+  .msg { display: flex; flex-direction: column; max-width: 75%; }
   .msg.user { align-self: flex-end; align-items: flex-end; }
-  .msg.ai { align-self: flex-start; align-items: flex-start; }
-  .msg-label {
-    font-size: 9px;
-    color: var(--subtle);
-    letter-spacing: 2px;
-    margin-bottom: 5px;
-    font-variant: small-caps;
-  }
-  .bubble {
-    padding: 12px 16px;
-    font-size: 14px;
-    line-height: 1.7;
-    border-radius: 2px;
-  }
-  .msg.ai .bubble { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 0; }
-  .msg.user .bubble { background: var(--text); color: var(--bg); border-top-right-radius: 0; }
+  .msg.ai   { align-self: flex-start; align-items: flex-start; }
+  .msg-label { font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; font-family: 'Courier New', monospace; }
+  .msg.ai   .msg-label { color: #ff00ff; }
+  .msg.user .msg-label { color: #ffff00; }
+  .bubble { padding: 10px 14px; font-size: 13px; line-height: 1.6; font-family: 'Comic Sans MS', cursive; }
+  .msg.ai   .bubble { background: #000055; color: #00ffff; border: 3px solid #ff00ff; border-top-left-radius: 0; }
+  .msg.user .bubble { background: #330033; color: #ffff00; border: 3px solid #ffff00; border-top-right-radius: 0; }
+  /* markdown in bubbles */
+  .bubble code { background: rgba(0,0,0,0.5); color: #00ff00; font-family: 'Courier New', monospace; padding: 1px 4px; font-size: 12px; }
+  .msg.user .bubble code { background: rgba(255,255,255,0.15); color: #ffff00; }
+  .bubble pre { background: #000000; border: 2px inset #808080; padding: 8px; overflow-x: auto; margin: 6px 0; }
+  .bubble pre code { background: none; color: #00ff00; padding: 0; font-size: 11px; }
+  .bubble strong { color: #ffff00; font-weight: bold; }
+  .msg.user .bubble strong { color: #ffffff; }
+  .bubble em { font-style: italic; color: #ff99ff; }
+  .msg.user .bubble em { color: #ffccff; }
+  .bubble ul { padding-left: 18px; margin: 4px 0; list-style: disc; }
+  .bubble li { margin: 2px 0; }
+  /* typing dots */
   .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
-  .typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--subtle); animation: bop 1.2s infinite; }
-  .typing span:nth-child(2) { animation-delay: 0.2s; }
-  .typing span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bop { 0%,80%,100%{transform:translateY(0);opacity:0.3} 40%{transform:translateY(-4px);opacity:1} }
+  .typing span { width: 8px; height: 8px; border-radius: 50%; animation: bop 1.2s infinite; }
+  .typing span:nth-child(1) { background: #ff00ff; box-shadow: 0 0 6px #ff00ff; }
+  .typing span:nth-child(2) { background: #00ffff; box-shadow: 0 0 6px #00ffff; animation-delay: 0.2s; }
+  .typing span:nth-child(3) { background: #ffff00; box-shadow: 0 0 6px #ffff00; animation-delay: 0.4s; }
+  /* retry btn */
+  .retry-btn { display: inline-block; margin-top: 8px; background: #ff6600; border: 2px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 10px; font-weight: bold; padding: 4px 10px; font-family: 'Comic Sans MS', cursive; text-transform: uppercase; letter-spacing: 1px; }
+  .retry-btn:active { border-style: inset; }
 
-  #inputbar {
-    padding: 16px 32px 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    background: var(--bg);
-    flex-shrink: 0;
-  }
-  #userinput {
-    flex: 1;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 11px 14px;
-    font-size: 13px;
-    font-family: 'Times New Roman', Times, serif;
-    font-style: italic;
-    color: var(--text);
-    outline: none;
-    resize: none;
-    transition: border-color 0.15s;
-    line-height: 1.5;
-    max-height: 120px;
-    overflow-y: auto;
-  }
-  #userinput::placeholder { color: var(--subtle); }
-  #userinput:focus { border-color: var(--muted); }
-  #sendbtn {
-    width: 38px; height: 38px;
-    background: var(--text);
-    border: none; border-radius: 2px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: opacity 0.12s;
-  }
-  #sendbtn:hover { opacity: 0.75; }
-  #sendbtn svg { width: 13px; height: 13px; fill: var(--bg); }
+  /* ── INPUT BAR ── */
+  #inputbar { padding: 8px 12px; border-top: 3px solid #00ff00; background: #c0c0c0; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+  #userinput { flex: 1; background: #ffffff; border: 3px inset #c0c0c0; padding: 8px 10px; font-size: 13px; font-family: 'Comic Sans MS', cursive; color: #000000; outline: none; resize: none; line-height: 1.5; max-height: 100px; overflow-y: auto; }
+  #userinput::placeholder { color: #808080; font-style: italic; }
+  #sendbtn { padding: 8px 14px; background: #ff6600; border: 3px outset #c0c0c0; cursor: pointer; font-family: 'Comic Sans MS', cursive; font-size: 12px; font-weight: bold; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; white-space: nowrap; }
+  #sendbtn:active { border-style: inset; }
+  #sendbtn:hover { background: #ff8800; }
 
-  #memory-view {
-    flex: 1;
-    display: none;
-    overflow: hidden;
-    position: relative;
-  }
+  /* ── MEMORY VIEW ── */
+  #memory-view { flex: 1; display: none; overflow: hidden; }
   #memory-view.active { display: flex; }
-  #graph-container {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    background: var(--bg);
-  }
+  #graph-container { flex: 1; position: relative; overflow: hidden; background: #000022; background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.65) 1px, transparent 0), radial-gradient(circle at 18px 18px, rgba(255,255,255,0.35) 0.5px, transparent 0); background-size: 28px 28px; border: 3px inset #c0c0c0; }
   #graph-canvas { position: absolute; top: 0; left: 0; }
 
-  #memory-list-panel {
-    width: 280px;
-    border-left: 1px solid var(--border);
-    background: var(--bg2);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  #memory-panel-header {
-    padding: 16px 18px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  #memory-panel-header span {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    font-variant: small-caps;
-  }
-  #memory-items {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-  .memory-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 10px 12px;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    transition: border-color 0.12s;
-  }
-  .memory-item:hover { border-color: var(--muted); }
-  .memory-item.highlighted { border-color: var(--text); }
-  .memory-text { flex: 1; font-size: 12px; line-height: 1.5; color: var(--text); font-style: italic; }
-  .memory-tag { font-size: 9px; color: var(--subtle); letter-spacing: 1px; font-variant: small-caps; margin-top: 4px; }
-  .del-memory {
-    background: none; border: none;
-    color: var(--subtle); cursor: pointer;
-    font-size: 14px; padding: 0;
-    transition: color 0.1s;
-    font-family: 'Times New Roman', Times, serif;
-    flex-shrink: 0; line-height: 1;
-  }
-  .del-memory:hover { color: #c0392b; }
+  /* ── NODE POPUP ── */
+  #node-popup { position: absolute; background: #c0c0c0; border: 3px outset #c0c0c0; width: 244px; display: none; z-index: 200; font-family: 'Comic Sans MS', cursive; box-shadow: 4px 4px 0 rgba(0,0,0,0.6); }
+  .popup-titlebar { background: #000080; color: #ffffff; padding: 3px 5px; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold; user-select: none; }
+  .popup-title-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .popup-btn { background: #c0c0c0; border: 2px outset #c0c0c0; color: #000000; cursor: pointer; font-size: 9px; font-weight: bold; padding: 0 5px; line-height: 1.6; font-family: 'Comic Sans MS', cursive; flex-shrink: 0; }
+  .popup-btn:active { border-style: inset; }
+  .popup-body { padding: 8px; max-height: 280px; overflow-y: auto; scrollbar-width: thin; }
+  .popup-mem-text { background: #ffffff; border: 2px inset #c0c0c0; padding: 7px 9px; font-size: 12px; color: #000000; line-height: 1.5; margin-bottom: 6px; }
+  .popup-meta { font-size: 9px; color: #000080; font-family: 'Courier New', monospace; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .popup-count { font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #000000; font-family: 'Courier New', monospace; padding-bottom: 5px; border-bottom: 1px solid #808080; margin-bottom: 5px; }
+  .popup-mem-list { background: #ffffff; border: 2px inset #c0c0c0; }
+  .popup-mem-item { padding: 5px 8px; font-size: 11px; color: #000000; cursor: pointer; border-bottom: 1px solid #d0d0d0; line-height: 1.4; border-left: 3px solid transparent; }
+  .popup-mem-item:hover { background: #000080; color: #ffffff; border-left-color: #00ffff; }
+  .popup-mem-item:last-child { border-bottom: none; }
+  .popup-empty { font-size: 11px; color: #808080; font-style: italic; padding: 8px; text-align: center; }
+  .popup-del-btn { width: 100%; background: #ff0000; border: 2px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 10px; font-weight: bold; padding: 5px; font-family: 'Comic Sans MS', cursive; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+  .popup-del-btn:active { border-style: inset; }
+  .popup-del-btn:hover { background: #cc0000; }
 
-  #settings-view {
-    flex: 1;
-    display: none;
-    flex-direction: column;
-    overflow-y: auto;
-    padding: 40px 60px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
+  /* ── MEMORY PANEL ── */
+  #memory-list-panel { width: 268px; border-left: 3px outset #c0c0c0; background: #c0c0c0; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+  #memory-panel-header { background: #000080; color: #ffffff; padding: 4px 8px; flex-shrink: 0; font-size: 11px; font-weight: bold; font-family: 'Comic Sans MS', cursive; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  #memory-panel-header span { color: #ffffff; flex: 1; }
+  #clear-memory-btn { background: #ff0000; border: 2px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 9px; font-weight: bold; padding: 2px 7px; font-family: 'Comic Sans MS', cursive; white-space: nowrap; flex-shrink: 0; }
+  #clear-memory-btn:active { border-style: inset; }
+  #memory-items { flex: 1; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 4px; scrollbar-width: auto; scrollbar-color: #808080 #c0c0c0; }
+  .memory-item { background: #ffffff; border: 2px outset #c0c0c0; padding: 6px 8px; display: flex; align-items: flex-start; gap: 8px; }
+  .memory-item:hover { border-color: #0000ff; }
+  .memory-item.highlighted { border: 2px solid #ff0000; background: #ffffcc; }
+  .memory-text { flex: 1; font-size: 11px; line-height: 1.5; color: #000000; font-family: 'Comic Sans MS', cursive; }
+  .memory-tag { font-size: 9px; color: #808080; font-family: 'Courier New', monospace; margin-top: 3px; }
+  .del-memory { background: #ff0000; border: 1px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 10px; font-weight: bold; padding: 1px 5px; font-family: 'Comic Sans MS', cursive; flex-shrink: 0; line-height: 1.4; }
+  .del-memory:hover { background: #cc0000; }
+
+  /* ── ADD MEMORY FORM ── */
+  #add-memory-btn { background: #00aa00; border: 2px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 9px; font-weight: bold; padding: 2px 7px; font-family: 'Comic Sans MS', cursive; white-space: nowrap; flex-shrink: 0; }
+  #add-memory-btn:active { border-style: inset; }
+  #add-memory-form { padding: 6px; border-bottom: 2px solid #808080; flex-shrink: 0; display: none; background: #d4d0c8; }
+  #add-memory-form.show { display: block; }
+  #add-memory-input { width: 100%; background: #ffffff; border: 3px inset #c0c0c0; padding: 5px 7px; font-size: 11px; font-family: 'Comic Sans MS', cursive; color: #000000; outline: none; resize: none; min-height: 48px; line-height: 1.5; }
+  #add-memory-submit { width: 100%; background: #000080; border: 2px outset #c0c0c0; color: #ffffff; cursor: pointer; font-size: 10px; font-weight: bold; padding: 5px; font-family: 'Comic Sans MS', cursive; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+  #add-memory-submit:active { border-style: inset; }
+  #add-memory-submit:hover { background: #0000aa; }
+
+  /* ── SETTINGS ── */
+  #settings-view { flex: 1; display: none; flex-direction: column; overflow-y: auto; padding: 16px 24px; background: #c0c0c0; scrollbar-width: auto; scrollbar-color: #808080 #c0c0c0; }
   #settings-view.active { display: flex; }
-  .settings-section { margin-bottom: 40px; }
-  .settings-title {
-    font-size: 11px;
-    color: var(--subtle);
-    letter-spacing: 3px;
-    font-variant: small-caps;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .settings-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .settings-label { font-size: 12px; color: var(--muted); font-style: italic; }
-  .settings-input {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 10px 14px;
-    font-size: 13px;
-    font-family: 'Times New Roman', Times, serif;
-    font-style: italic;
-    color: var(--text);
-    outline: none;
-    width: 100%;
-    transition: border-color 0.15s;
-  }
-  .settings-input:focus { border-color: var(--muted); }
-  .settings-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
-  .settings-save {
-    padding: 10px 24px;
-    background: var(--text);
-    color: var(--bg);
-    border: none; border-radius: 2px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 13px; font-style: italic;
-    cursor: pointer; transition: opacity 0.12s;
-    align-self: flex-start;
-  }
-  .settings-save:hover { opacity: 0.75; }
-  .saved-note {
-    font-size: 11px; color: var(--muted);
-    font-style: italic; margin-left: 12px;
-    opacity: 0; transition: opacity 0.3s;
-  }
+  .under-construction { background: #ffff00; border: 3px solid #ff0000; padding: 6px 12px; font-size: 11px; font-weight: bold; color: #000000; text-align: center; margin-bottom: 14px; font-family: 'Comic Sans MS', cursive; letter-spacing: 1px; animation: blink 1.5s step-start infinite; flex-shrink: 0; }
+  .settings-section { margin-bottom: 20px; }
+  .settings-title { background: #000080; color: #ffffff; font-size: 11px; font-weight: bold; font-family: 'Comic Sans MS', cursive; padding: 4px 10px; margin-bottom: 10px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
+  .settings-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; }
+  .settings-label { font-size: 11px; font-weight: bold; color: #000000; font-family: 'Comic Sans MS', cursive; }
+  .settings-input { background: #ffffff; border: 3px inset #c0c0c0; padding: 6px 10px; font-size: 13px; font-family: 'Comic Sans MS', cursive; color: #000000; outline: none; width: 100%; }
+  .settings-input::placeholder { color: #808080; font-style: italic; }
+  .settings-textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .settings-save { padding: 7px 20px; background: #00aa00; color: #ffffff; border: 3px outset #c0c0c0; font-family: 'Comic Sans MS', cursive; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; align-self: flex-start; }
+  .settings-save:active { border-style: inset; }
+  .settings-save:hover { background: #00cc00; }
+  .saved-note { font-size: 11px; color: #000080; font-weight: bold; margin-left: 12px; opacity: 0; transition: opacity 0.3s; font-family: 'Courier New', monospace; }
   .saved-note.show { opacity: 1; }
+
+  /* ── STATUS BAR ── */
+  #statusbar { background: #c0c0c0; border-top: 3px outset #c0c0c0; height: 20px; display: flex; align-items: center; padding: 0 8px; gap: 12px; flex-shrink: 0; }
+  .status-item { font-size: 9px; font-family: 'Courier New', monospace; color: #000000; border-right: 1px solid #808080; padding-right: 12px; }
+  .status-item:last-child { border-right: none; margin-left: auto; }
 </style>
 </head>
 <body>
 
 <div id="drag">
-  <span>Huntwr GPT</span>
+  <span class="title-star">⭐</span>
+  <span class="site-title">HUNTWR GPT</span>
+  <span class="title-star" style="animation-direction:reverse;animation-duration:2s">⭐</span>
+  <div class="visitor-counter">👁 VISITORS: 001337</div>
   <div class="nav-tabs">
-    <button class="nav-tab active" data-view="chat">Chat</button>
-    <button class="nav-tab" data-view="memory">Memory</button>
-    <button class="nav-tab" data-view="settings">Settings</button>
+    <button class="nav-tab active" data-view="chat">💬 CHAT!!!</button>
+    <button class="nav-tab" data-view="memory">🧠 MY BRAIN</button>
+    <button class="nav-tab" data-view="settings">⚙️ SETTINGS</button>
   </div>
+</div>
+
+<div id="marquee-bar">
+  <span id="marquee-text">🔥 WELCOME 2 HUNTWR GPT - THE MOST ADVANCED AI OF ALL TIME!!! 🔥 NOW WITH MEMORY TECHNOLOGY!!! 🔥 POWERED BY OLLAMA 🔥 BEST VIEWED IN NETSCAPE NAVIGATOR 4.0 AT 800x600 🔥 SIGN THE GUESTBOOK!!! 🔥</span>
 </div>
 
 <div id="app">
   <div id="sidebar">
-    <div class="sidebar-label">Conversations</div>
+    <div class="sidebar-titlebar">📁 MY CONVOS</div>
+    <input id="sidebar-search" placeholder="🔍 search chats..." />
     <div id="thread-list"></div>
-    <button id="new-chat">+ new conversation</button>
+    <button id="new-chat">✨ NEW CHAT ✨</button>
+    <div class="sidebar-footer">© 1997 HUNTWR GPT INC.</div>
   </div>
 
   <div id="chat-view">
     <div id="messages"></div>
     <div id="inputbar">
-      <textarea id="userinput" rows="1" placeholder="say sum..."></textarea>
-      <button id="sendbtn">
-        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-      </button>
+      <textarea id="userinput" rows="1" placeholder="type ur message here lol..."></textarea>
+      <button id="sendbtn">SEND IT!!! &gt;&gt;</button>
     </div>
   </div>
 
@@ -391,52 +248,67 @@
     </div>
     <div id="memory-list-panel">
       <div id="memory-panel-header">
-        <span>Memory nodes</span>
+        <span>🧠 MEMORY NODES!!!</span>
+        <button id="add-memory-btn">+ ADD</button>
+        <button id="clear-memory-btn">CLEAR ALL</button>
+      </div>
+      <div id="add-memory-form">
+        <textarea id="add-memory-input" placeholder="type something to remember..."></textarea>
+        <button id="add-memory-submit">🧠 ADD MEMORY!!!</button>
       </div>
       <div id="memory-items"></div>
     </div>
   </div>
 
   <div id="settings-view">
+    <div class="under-construction">🚧 UNDER CONSTRUCTION 🚧 PAGE MAY CHANGE!!! 🚧</div>
     <div class="settings-section">
-      <div class="settings-title">About You</div>
+      <div class="settings-title">👤 ABOUT U!!!</div>
       <div class="settings-row">
-        <div class="settings-label">your name</div>
-        <input class="settings-input" id="s-name" placeholder="what do people call you" />
+        <div class="settings-label">ur name:</div>
+        <input class="settings-input" id="s-name" placeholder="what do ppl call u" />
       </div>
       <div class="settings-row">
-        <div class="settings-label">age</div>
-        <input class="settings-input" id="s-age" placeholder="how old are you" />
+        <div class="settings-label">age (no lying!!!):</div>
+        <input class="settings-input" id="s-age" placeholder="how old r u" />
       </div>
       <div class="settings-row">
-        <div class="settings-label">location</div>
-        <input class="settings-input" id="s-location" placeholder="where you at" />
+        <div class="settings-label">location:</div>
+        <input class="settings-input" id="s-location" placeholder="where u at" />
       </div>
       <div class="settings-row">
-        <div class="settings-label">occupation / what you do</div>
-        <input class="settings-input" id="s-job" placeholder="what do you do" />
+        <div class="settings-label">occupation:</div>
+        <input class="settings-input" id="s-job" placeholder="what do u do" />
       </div>
       <div class="settings-row">
-        <div class="settings-label">interests & hobbies</div>
-        <textarea class="settings-input settings-textarea" id="s-interests" placeholder="valorant, music, whatever"></textarea>
+        <div class="settings-label">interests & hobbies:</div>
+        <textarea class="settings-input settings-textarea" id="s-interests" placeholder="valorant, music, whatever lol"></textarea>
       </div>
       <div class="settings-row">
-        <div class="settings-label">anything else huntwr should know about you</div>
-        <textarea class="settings-input settings-textarea" id="s-extra" placeholder="goals, personality, stuff that matters"></textarea>
+        <div class="settings-label">anything else huntwr should know:</div>
+        <textarea class="settings-input settings-textarea" id="s-extra" placeholder="goals, personality, ur deepest secrets..."></textarea>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-title">Model</div>
+      <div class="settings-title">🤖 AI MODEL!!!</div>
       <div class="settings-row">
-        <div class="settings-label">ollama model name</div>
-        <input class="settings-input" id="s-model" placeholder="llama3" />
+        <div class="settings-label">ollama model (click to pick one!!!):</div>
+        <input class="settings-input" id="s-model" list="model-list" placeholder="llama3" />
+        <datalist id="model-list"></datalist>
       </div>
     </div>
     <div style="display:flex;align-items:center;">
-      <button class="settings-save" id="save-settings">save</button>
-      <span class="saved-note" id="saved-note">saved.</span>
+      <button class="settings-save" id="save-settings">💾 SAVE IT!!!</button>
+      <span class="saved-note" id="saved-note">✅ SAVED!!!!</span>
     </div>
   </div>
+</div>
+
+<div id="statusbar">
+  <span class="status-item">✅ CONNECTED TO OLLAMA</span>
+  <span class="status-item">🔒 SECURE CONNECTION</span>
+  <span class="status-item">BEST VIEWED: NETSCAPE 4.0 | 800×600 | 56K MODEM</span>
+  <span class="status-item">HUNTWR GPT v1.0 © 1997</span>
 </div>
 
 <script>
@@ -447,23 +319,20 @@ const os = require('os')
 // ── STORAGE ──
 const DATA_DIR = path.join(os.homedir(), '.huntwrgpt')
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR)
-const CHATS_FILE = path.join(DATA_DIR, 'chats.json')
-const MEMORY_FILE = path.join(DATA_DIR, 'memory.json')
+const CHATS_FILE   = path.join(DATA_DIR, 'chats.json')
+const MEMORY_FILE  = path.join(DATA_DIR, 'memory.json')
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json')
 
-function loadJSON(file, def) {
-  try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return def }
-}
-function saveJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2))
-}
+function loadJSON(file, def) { try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return def } }
+function saveJSON(file, data) { fs.writeFileSync(file, JSON.stringify(data, null, 2)) }
 
-let chats = loadJSON(CHATS_FILE, [{ id: 1, name: 'new conversation', messages: [] }])
-let memory = loadJSON(MEMORY_FILE, [])
+let chats    = loadJSON(CHATS_FILE,    [{ id: 1, name: 'new conversation', messages: [] }])
+let memory   = loadJSON(MEMORY_FILE,   [])
 let settings = loadJSON(SETTINGS_FILE, { name:'', age:'', location:'', job:'', interests:'', extra:'', model:'llama3' })
 let activeId = chats[0]?.id || 1
-let nextId = Math.max(...chats.map(c => c.id), 1) + 1
+let nextId   = Math.max(...chats.map(c => c.id), 1) + 1
 let isWaiting = false
+let lastActiveChat = null
 
 function getActive() { return chats.find(c => c.id === activeId) }
 
@@ -471,18 +340,15 @@ function getActive() { return chats.find(c => c.id === activeId) }
 function buildPersona() {
   const s = settings
   let userInfo = ''
-  if (s.name) userInfo += `\nThe user's name is ${s.name}.`
-  if (s.age) userInfo += ` They are ${s.age} years old.`
-  if (s.location) userInfo += ` They live in ${s.location}.`
-  if (s.job) userInfo += ` They do: ${s.job}.`
+  if (s.name)      userInfo += `\nThe user's name is ${s.name}.`
+  if (s.age)       userInfo += ` They are ${s.age} years old.`
+  if (s.location)  userInfo += ` They live in ${s.location}.`
+  if (s.job)       userInfo += ` They do: ${s.job}.`
   if (s.interests) userInfo += ` Their interests: ${s.interests}.`
-  if (s.extra) userInfo += ` Extra context: ${s.extra}.`
-
-  let memoryInfo = ''
-  if (memory.length > 0) {
-    memoryInfo = '\n\nThings you remember about this user:\n' + memory.map(m => `- ${m.text}`).join('\n')
-  }
-
+  if (s.extra)     userInfo += ` Extra context: ${s.extra}.`
+  const memoryInfo = memory.length > 0
+    ? '\n\nThings you remember about this user:\n' + memory.map(m => `- ${m.text}`).join('\n')
+    : ''
   return `You are HuntwrGPT — an AI that talks exactly like Hunter. Here is how Hunter talks:
 - casual and real, like texting. lowercase mostly.
 - says "bet", "bro", "deaduzz", "lit", "frfr", "yk", "sum", "thats whats up" naturally
@@ -495,67 +361,123 @@ function buildPersona() {
 - matches the user's energy
 - when something is vague, ask "what u mean tho"
 
-MEMORY RULE — mandatory, every single response:
-If the user reveals ANYTHING personal — their name, age, location, job, hobbies, opinions, relationships, goals, feelings, what they like or dislike — you MUST append one or more [REMEMBER: ...] tags at the very end of your reply. Do this automatically. Do not wait to be asked.
+MEMORY RULE — YOU MUST DO THIS EVERY SINGLE RESPONSE, NO EXCEPTIONS:
+Scan what the user just said. If they mentioned ANYTHING about themselves — name, age, where they live, job, school, hobbies, games they play, food they like, people they know, goals, feelings, opinions, anything — append [REMEMBER: fact] tags at the END of your reply. Every. Single. Time. Do not ask. Do not say "I'll remember that." Just silently add the tag and keep talking normally.
 
-Each tag must contain the real specific fact the user just told you. Not a placeholder. Not a description of what kind of fact it is. The actual fact itself.
+FORMAT: [REMEMBER: the actual fact in plain words]
 
-Correct examples:
-- User says "im from austin" → [REMEMBER: lives in Austin]
-- User says "i play val every day" → [REMEMBER: plays Valorant every day]
-- User says "my name is jake" → [REMEMBER: name is Jake]
-- User says "i hate mornings" → [REMEMBER: hates mornings]
-- User says "im trying to lose weight" → [REMEMBER: trying to lose weight]
-- User says "my best friend is marcus" → [REMEMBER: best friend named Marcus]
+GOOD — write the real fact:
+[REMEMBER: lives in Austin]
+[REMEMBER: plays Valorant every day]
+[REMEMBER: name is Jake]
+[REMEMBER: best friend named Marcus]
 
-Wrong — never do this:
-- [REMEMBER: something about the user]
-- [REMEMBER: specific fact]
-- [REMEMBER: e.g. plays Valorant]
-- [REMEMBER: user mentioned their location]
+BAD — never write these:
+[REMEMBER: something about the user]
+[REMEMBER: personal information]
 
-One tag per fact. Multiple tags if multiple facts. Real words only.
+Multiple facts in one message = multiple tags. They are invisible to the user so there is no reason to skip them.
 ${userInfo}${memoryInfo}
 
 Be Hunter. Not an assistant pretending to be Hunter. Actually be him.`
+}
+
+// ── MARKDOWN ──
+function inlineMd(text) {
+  return text
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+}
+
+function renderMarkdown(raw) {
+  const lines = raw.split('\n')
+  const out = []
+  let inCode = false, codeBuf = [], inList = false
+
+  for (const line of lines) {
+    if (line.startsWith('```')) {
+      if (inCode) {
+        const esc = codeBuf.join('\n').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        out.push(`<pre><code>${esc}</code></pre>`)
+        codeBuf = []; inCode = false
+      } else {
+        if (inList) { out.push('</ul>'); inList = false }
+        inCode = true
+      }
+      continue
+    }
+    if (inCode) { codeBuf.push(line); continue }
+
+    const bullet = line.match(/^[-*] (.+)$/)
+    const num    = line.match(/^\d+\. (.+)$/)
+    if (bullet || num) {
+      if (!inList) { out.push('<ul>'); inList = true }
+      out.push(`<li>${inlineMd((bullet||num)[1])}</li>`)
+    } else {
+      if (inList) { out.push('</ul>'); inList = false }
+      out.push(line.trim() === '' ? '<br>' : `<span>${inlineMd(line)}</span><br>`)
+    }
+  }
+  if (inList) out.push('</ul>')
+  if (inCode && codeBuf.length) {
+    const esc = codeBuf.join('\n').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    out.push(`<pre><code>${esc}</code></pre>`)
+  }
+  return out.join('')
+}
+
+// ── SMARTER DEDUP ──
+function isDuplicateMemory(fact) {
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2)
+  const newW = new Set(norm(fact))
+  return memory.some(m => {
+    const exW = new Set(norm(m.text))
+    const inter = [...newW].filter(w => exW.has(w)).length
+    const union = new Set([...newW, ...exW]).size
+    return union > 0 && inter / union > 0.6
+  })
 }
 
 // ── MEMORY EXTRACTION ──
 function extractMemory(text) {
   const matches = [...text.matchAll(/\[REMEMBER:\s*(.+?)\]/gi)]
   if (matches.length > 0) {
-    matches.forEach(match => {
-      const fact = match[1].trim()
-      if (
-        fact.includes('e.g.') ||
-        fact.includes('example') ||
-        fact.includes('...') ||
-        fact.includes('specific fact') ||
-        fact.includes('something about') ||
-        fact.includes('user mentioned') ||
-        fact.length < 4
-      ) return
-      const exists = memory.some(m => m.text.toLowerCase() === fact.toLowerCase())
-      if (!exists) {
+    let added = false
+    matches.forEach(m => {
+      const fact = m[1].trim()
+      if (fact.length < 4 || fact.includes('e.g.') || fact.includes('...') ||
+          fact.includes('specific fact') || fact.includes('something about') ||
+          fact.includes('user mentioned') || fact.includes('personal info')) return
+      if (!isDuplicateMemory(fact)) {
         memory.push({ id: Date.now() + Math.random(), text: fact, timestamp: new Date().toISOString() })
+        added = true
       }
     })
-    saveJSON(MEMORY_FILE, memory)
-    renderMemoryPanel()
-    graphInited = false
-    renderGraph()
+    if (added) {
+      saveJSON(MEMORY_FILE, memory)
+      renderMemoryPanel()
+      if (document.getElementById('memory-view').classList.contains('active')) {
+        graphInited = false; renderGraph()
+      }
+    }
   }
   return text.replace(/\[REMEMBER:.*?\]/gi, '').trim()
 }
 
 // ── THREADS ──
+let searchQuery = ''
+
 function renderThreads() {
   const list = document.getElementById('thread-list')
   list.innerHTML = ''
-  chats.forEach(c => {
+  const filtered = searchQuery
+    ? chats.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : chats
+  filtered.forEach(c => {
     const div = document.createElement('div')
     div.className = 'thread' + (c.id === activeId ? ' active' : '')
-    div.innerHTML = `<span class="thread-name">${c.name}</span><button class="del-thread" data-id="${c.id}">×</button>`
+    div.innerHTML = `<span class="thread-name">💬 ${c.name}</span><button class="del-thread" data-id="${c.id}">X</button>`
     div.querySelector('.thread-name').onclick = () => { activeId = c.id; renderThreads(); renderMessages() }
     div.querySelector('.del-thread').onclick = e => { e.stopPropagation(); deleteChat(c.id) }
     list.appendChild(div)
@@ -567,8 +489,7 @@ function deleteChat(id) {
   if (chats.length === 0) chats = [{ id: nextId++, name: 'new conversation', messages: [] }]
   if (activeId === id) activeId = chats[0].id
   saveJSON(CHATS_FILE, chats)
-  renderThreads()
-  renderMessages()
+  renderThreads(); renderMessages()
 }
 
 // ── MESSAGES ──
@@ -583,26 +504,51 @@ function renderMessages() {
   }
 }
 
-function addBubbleToDom(role, text) {
+function addBubbleToDom(role, text, extraHTML = '') {
   const el = document.getElementById('messages')
   const wrap = document.createElement('div')
   wrap.className = `msg ${role}`
-  wrap.innerHTML = `<div class="msg-label">${role === 'ai' ? 'Huntwr' : 'You'}</div><div class="bubble">${text.replace(/\n/g, '<br>')}</div>`
+  const label = role === 'ai' ? '🤖 HUNTWR SAYS:' : '👤 U SAID:'
+  wrap.innerHTML = `<div class="msg-label">${label}</div><div class="bubble">${renderMarkdown(text)}${extraHTML}</div>`
   el.appendChild(wrap)
   el.scrollTop = el.scrollHeight
+  return wrap
 }
 
 function showTyping() {
   const el = document.getElementById('messages')
   const wrap = document.createElement('div')
   wrap.className = 'msg ai'; wrap.id = 'typing'
-  wrap.innerHTML = `<div class="msg-label">Huntwr</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`
-  el.appendChild(wrap)
-  el.scrollTop = el.scrollHeight
+  wrap.innerHTML = `<div class="msg-label">🤖 HUNTWR IS TYPING...</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`
+  el.appendChild(wrap); el.scrollTop = el.scrollHeight
 }
 function removeTyping() { document.getElementById('typing')?.remove() }
 
-// ── SEND ──
+// ── SEND / RETRY ──
+async function callOllama(chat) {
+  const model = settings.model || 'llama3'
+  const res = await fetch('http://localhost:11434/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'system', content: buildPersona() }, ...chat.messages],
+      stream: false
+    })
+  })
+  const data = await res.json()
+  return data.message?.content || 'yo something broke frfr'
+}
+
+function showError() {
+  removeTyping()
+  const wrap = document.createElement('div')
+  wrap.className = 'msg ai'; wrap.id = 'error-bubble'
+  wrap.innerHTML = `<div class="msg-label">🤖 HUNTWR SAYS:</div><div class="bubble">bro are we deaduzz — make sure ollama is running<br><button class="retry-btn" onclick="retryLast()">🔄 RETRY!!!</button></div>`
+  document.getElementById('messages').appendChild(wrap)
+  document.getElementById('messages').scrollTop = 99999
+}
+
 async function send() {
   const inputEl = document.getElementById('userinput')
   const text = inputEl.value.trim()
@@ -611,38 +557,43 @@ async function send() {
   inputEl.value = ''; inputEl.style.height = 'auto'
 
   const chat = getActive()
+  lastActiveChat = chat
   if (chat.messages.length === 0) {
     chat.name = text.slice(0, 26) + (text.length > 26 ? '...' : '')
     renderThreads()
   }
-
   chat.messages.push({ role: 'user', content: text })
   addBubbleToDom('user', text)
   showTyping()
 
   try {
-    const model = settings.model || 'llama3'
-    const res = await fetch('http://localhost:11434/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'system', content: buildPersona() }, ...chat.messages],
-        stream: false
-      })
-    })
-    const data = await res.json()
-    let reply = data.message?.content || 'yo something broke frfr'
+    let reply = await callOllama(chat)
     reply = extractMemory(reply)
     removeTyping()
     chat.messages.push({ role: 'assistant', content: reply })
     addBubbleToDom('ai', reply)
     saveJSON(CHATS_FILE, chats)
   } catch {
-    removeTyping()
-    addBubbleToDom('ai', 'bro are we deaduzz — make sure ollama is running')
+    showError()
   }
+  isWaiting = false
+}
 
+async function retryLast() {
+  if (!lastActiveChat || isWaiting) return
+  document.getElementById('error-bubble')?.remove()
+  isWaiting = true
+  showTyping()
+  try {
+    let reply = await callOllama(lastActiveChat)
+    reply = extractMemory(reply)
+    removeTyping()
+    lastActiveChat.messages.push({ role: 'assistant', content: reply })
+    addBubbleToDom('ai', reply)
+    saveJSON(CHATS_FILE, chats)
+  } catch {
+    showError()
+  }
   isWaiting = false
 }
 
@@ -651,7 +602,7 @@ function renderMemoryPanel() {
   const el = document.getElementById('memory-items')
   el.innerHTML = ''
   if (memory.length === 0) {
-    el.innerHTML = `<div style="font-size:12px;font-style:italic;color:var(--subtle);padding:8px;">no memories yet — just start chatting</div>`
+    el.innerHTML = `<div style="font-size:11px;color:#808080;padding:8px;font-family:'Comic Sans MS',cursive;">no memories yet lol — just start chatting!!!</div>`
     return
   }
   memory.forEach(m => {
@@ -660,14 +611,11 @@ function renderMemoryPanel() {
     div.dataset.id = m.id
     div.innerHTML = `
       <div style="flex:1">
-        <div class="memory-text">${m.text}</div>
+        <div class="memory-text">🧠 ${m.text}</div>
         <div class="memory-tag">${new Date(m.timestamp).toLocaleDateString()}</div>
       </div>
-      <button class="del-memory" data-id="${m.id}">×</button>
-    `
-    div.querySelector('.del-memory').onclick = () => {
-      deleteMemory(m.id)
-    }
+      <button class="del-memory">DEL</button>`
+    div.querySelector('.del-memory').onclick = () => deleteMemory(m.id)
     el.appendChild(div)
   })
 }
@@ -677,18 +625,27 @@ function deleteMemory(id) {
   saveJSON(MEMORY_FILE, memory)
   renderMemoryPanel()
   graphInited = false
-  renderGraph()
+  if (document.getElementById('memory-view').classList.contains('active')) renderGraph()
+  if (selectedNode?.id === id) hideNodePopup()
 }
 
 function highlightNode(id) {
-  document.querySelectorAll('.memory-item').forEach(el => {
-    el.classList.toggle('highlighted', el.dataset.id == id)
-  })
-  const target = document.querySelector(`.memory-item[data-id="${id}"]`)
-  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  document.querySelectorAll('.memory-item').forEach(el => el.classList.toggle('highlighted', el.dataset.id == id))
+  document.querySelector(`.memory-item[data-id="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 }
 
-// ── GRAPH ──
+document.getElementById('clear-memory-btn').onclick = () => {
+  if (memory.length === 0) return
+  if (!confirm('DELETE ALL MEMORIES?? R U SURE???')) return
+  memory = []
+  saveJSON(MEMORY_FILE, memory)
+  renderMemoryPanel()
+  graphInited = false
+  hideNodePopup()
+  if (document.getElementById('memory-view').classList.contains('active')) renderGraph()
+}
+
+// ── GRAPH STATE ──
 const CATEGORIES = {
   gaming:   { keywords: ['game','gaming','play','valorant','fps','steam','console','xbox','playstation','nintendo','league','fortnite','apex'], label: 'Gaming' },
   food:     { keywords: ['eat','food','cook','restaurant','hungry','meal','drink','coffee','pizza','sushi','breakfast','lunch','dinner'], label: 'Food' },
@@ -720,46 +677,41 @@ function shortLabel(text, max = 14) {
   return out + (out.length < text.length ? '…' : '')
 }
 
-let nodes = [], edges = [], animFrame
-let graphInited = false
-let hoveredNode = null
-let dragNode = null
-let panX = 0, panY = 0
-let panStartX = 0, panStartY = 0
-let isPanning = false
-let zoom = 1
-let selectedNode = null
+let nodes = [], edges = [], animFrame = null
+let nodeById = new Map()
+let tickFn = null
+let graphInited = false, graphSetup = false, graphSettled = false
+let hoveredNode = null, dragNode = null, selectedNode = null
+let panX = 0, panY = 0, panStartX = 0, panStartY = 0
+let isPanning = false, zoom = 1
 
+// ── BUILD GRAPH ──
 function buildGraph() {
-  nodes = []
-  edges = []
+  nodes = []; edges = []
 
   nodes.push({
     id: 'user',
     label: shortLabel(settings.name || 'you', 10),
-    fullText: settings.name ? `This is ${settings.name}` : 'You',
+    fullText: settings.name || 'You',
+    memories: memory.map(m => ({ id: m.id, text: m.text, timestamp: m.timestamp })),
     x: 0, y: 0, vx: 0, vy: 0, r: 20, type: 'user', fixed: true
   })
 
   const catMap = {}
   memory.forEach(m => {
     const cat = detectCategory(m.text)
-    if (cat) {
-      if (!catMap[cat]) catMap[cat] = []
-      catMap[cat].push(m.id)
-    }
+    if (cat) { if (!catMap[cat]) catMap[cat] = []; catMap[cat].push(m.id) }
   })
 
-  const catKeys = Object.keys(catMap)
-  catKeys.forEach((cat, i) => {
-    const angle = (i / catKeys.length) * Math.PI * 2
-    const dist = 160
+  Object.keys(catMap).forEach((cat, i, arr) => {
+    const angle = (i / arr.length) * Math.PI * 2
+    const catMems = memory.filter(m => catMap[cat].includes(m.id)).map(m => ({ id: m.id, text: m.text, timestamp: m.timestamp }))
     nodes.push({
       id: `cat_${cat}`,
       label: CATEGORIES[cat].label,
-      fullText: `Topic: ${CATEGORIES[cat].label} — ${catMap[cat].length} related memor${catMap[cat].length === 1 ? 'y' : 'ies'}`,
-      x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist,
+      fullText: CATEGORIES[cat].label,
+      memories: catMems,
+      x: Math.cos(angle) * 160, y: Math.sin(angle) * 160,
       vx: 0, vy: 0, r: 14, type: 'category', catKey: cat
     })
     edges.push({ a: 'user', b: `cat_${cat}`, strength: 120 })
@@ -773,11 +725,13 @@ function buildGraph() {
     const dist = 90 + Math.random() * 40
     nodes.push({
       id: m.id,
-      label: shortLabel(m.text, 16),
+      label: shortLabel(m.text, 18),
       fullText: m.text,
+      timestamp: m.timestamp,
+      category: cat,
       x: (parent?.x || 0) + Math.cos(angle) * dist,
       y: (parent?.y || 0) + Math.sin(angle) * dist,
-      vx: 0, vy: 0, r: 7, type: 'memory', category: cat
+      vx: 0, vy: 0, r: 8, type: 'memory'
     })
     edges.push({ a: parentId, b: m.id, strength: 80 })
   })
@@ -789,13 +743,13 @@ function buildGraph() {
       if (a.category && a.category === b.category) continue
       const wa = new Set(a.fullText.toLowerCase().split(/\W+/).filter(w => w.length > 4))
       const wb = b.fullText.toLowerCase().split(/\W+/).filter(w => w.length > 4)
-      if (wb.filter(w => wa.has(w)).length >= 1) {
-        edges.push({ a: a.id, b: b.id, weak: true, strength: 220 })
-      }
+      if (wb.filter(w => wa.has(w)).length >= 1) edges.push({ a: a.id, b: b.id, weak: true, strength: 220 })
     }
   }
+  nodeById = new Map(nodes.map(n => [n.id, n]))
 }
 
+// ── CANVAS COORDINATE HELPERS ──
 function getCanvasPos(canvas, clientX, clientY) {
   const rect = canvas.getBoundingClientRect()
   return {
@@ -804,41 +758,110 @@ function getCanvasPos(canvas, clientX, clientY) {
   }
 }
 
-function showNodeDetail(node) {
-  let panel = document.getElementById('node-detail')
-  if (!panel) {
-    panel = document.createElement('div')
-    panel.id = 'node-detail'
-    panel.style.cssText = `position:absolute;bottom:20px;left:20px;background:#faf9f7;border:1px solid #d4cfc6;border-radius:3px;padding:14px 16px;font-family:'Times New Roman',Times,serif;max-width:240px;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,0.07);`
-    document.getElementById('graph-container').appendChild(panel)
+function nodeScreenPos(node) {
+  const canvas = document.getElementById('graph-canvas')
+  const w = parseFloat(canvas.style.width) || canvas.parentElement.clientWidth
+  const h = parseFloat(canvas.style.height) || canvas.parentElement.clientHeight
+  return { x: w / 2 + panX + node.x * zoom, y: h / 2 + panY + node.y * zoom }
+}
+
+// ── NODE POPUP ──
+function getOrCreatePopup() {
+  let p = document.getElementById('node-popup')
+  if (!p) {
+    p = document.createElement('div')
+    p.id = 'node-popup'
+    document.getElementById('graph-container').appendChild(p)
   }
-  const typeLabel = node.type === 'category' ? 'Topic' : node.type === 'user' ? 'You' : 'Memory'
-  panel.innerHTML = `
-    <div style="font-size:9px;color:#9a9488;letter-spacing:2px;font-variant:small-caps;margin-bottom:6px;">${typeLabel}</div>
-    <div style="font-size:13px;color:#1a1816;line-height:1.6;font-style:italic;">${node.fullText}</div>
-    ${node.type === 'memory' ? `<div style="margin-top:10px;font-size:10px;color:#c8c2b8;cursor:pointer;" id="del-node-btn">× forget this</div>` : ''}
-  `
-  if (node.type === 'memory') {
-    panel.querySelector('#del-node-btn').onclick = () => {
-      deleteMemory(node.id)
-      panel.remove()
-      selectedNode = null
+  return p
+}
+
+function positionPopup(popup, node) {
+  const container = document.getElementById('graph-container')
+  const cw = container.clientWidth
+  const ch = container.clientHeight
+  const sp = nodeScreenPos(node)
+  const pw = 244, ph = 300
+  let px = sp.x + node.r * zoom + 12
+  let py = sp.y - ph / 2
+  if (px + pw > cw - 8) px = sp.x - node.r * zoom - pw - 12
+  px = Math.max(8, Math.min(cw - pw - 8, px))
+  py = Math.max(8, Math.min(ch - ph - 8, py))
+  popup.style.left = px + 'px'
+  popup.style.top  = py + 'px'
+  popup.style.display = 'block'
+}
+
+function hideNodePopup() {
+  const p = document.getElementById('node-popup')
+  if (p) p.style.display = 'none'
+  selectedNode = null
+}
+
+function showMemoryPopup(node, parentCatNode) {
+  const popup = getOrCreatePopup()
+  positionPopup(popup, node)
+  const m = memory.find(m => m.id === node.id)
+  const date = m ? new Date(m.timestamp).toLocaleDateString() : '?'
+  const catLabel = node.category ? CATEGORIES[node.category]?.label : 'Uncategorized'
+  popup.innerHTML = `
+    <div class="popup-titlebar">
+      ${parentCatNode ? `<button class="popup-btn" id="popup-back">◀</button>` : ''}
+      <span class="popup-title-text">🧠 MEMORY</span>
+      <button class="popup-btn" id="popup-close">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="popup-mem-text">${node.fullText}</div>
+      <div class="popup-meta">📅 ${date} &nbsp;·&nbsp; 📂 ${catLabel}</div>
+      <button class="popup-del-btn" id="popup-del">🗑 FORGET THIS</button>
+    </div>`
+  popup.querySelector('#popup-close').onclick = hideNodePopup
+  popup.querySelector('#popup-del').onclick = () => { deleteMemory(node.id); hideNodePopup() }
+  if (parentCatNode) {
+    popup.querySelector('#popup-back').onclick = () => showCategoryPopup(parentCatNode)
+  }
+}
+
+function showCategoryPopup(node) {
+  const popup = getOrCreatePopup()
+  positionPopup(popup, node)
+  const mems = node.memories || []
+  const listHTML = mems.length > 0
+    ? `<div class="popup-mem-list">${mems.map(m => `<div class="popup-mem-item" data-id="${m.id}">• ${m.text}</div>`).join('')}</div>`
+    : `<div class="popup-empty">no memories in this category yet!</div>`
+  popup.innerHTML = `
+    <div class="popup-titlebar">
+      <span class="popup-title-text">${node.type === 'user' ? '👤' : '📂'} ${node.fullText.toUpperCase()}</span>
+      <button class="popup-btn" id="popup-close">✕</button>
+    </div>
+    <div class="popup-body">
+      <div class="popup-count">${mems.length} MEMOR${mems.length === 1 ? 'Y' : 'IES'}</div>
+      ${listHTML}
+    </div>`
+  popup.querySelector('#popup-close').onclick = hideNodePopup
+  popup.querySelectorAll('.popup-mem-item').forEach(item => {
+    item.onclick = () => {
+      const id = parseFloat(item.dataset.id)
+      const memNode = nodes.find(n => n.id === id)
+      if (memNode) { selectedNode = memNode; showMemoryPopup(memNode, node) }
     }
+  })
+}
+
+function showNodePopup(node) {
+  selectedNode = node
+  if (node.type === 'memory') {
+    const parentCat = nodes.find(n => n.type === 'category' && (node.category ? n.id === `cat_${node.category}` : false))
+    showMemoryPopup(node, parentCat || null)
+    highlightNode(node.id)
+  } else {
+    showCategoryPopup(node)
   }
-  panel.style.display = 'block'
 }
 
-function hideNodeDetail() {
-  const p = document.getElementById('node-detail')
-  if (p) p.remove()
-}
+function resetGraphView() { panX = 0; panY = 0; zoom = 1 }
 
-function resetGraphView() {
-  panX = 0
-  panY = 0
-  zoom = 1
-}
-
+// ── RUN GRAPH ──
 function runGraph() {
   const canvas = document.getElementById('graph-canvas')
   const container = document.getElementById('graph-container')
@@ -846,207 +869,177 @@ function runGraph() {
 
   function resize() {
     const dpr = window.devicePixelRatio || 1
-    const w = container.clientWidth
-    const h = container.clientHeight
-    canvas.width = w * dpr
-    canvas.height = h * dpr
-    canvas.style.width = w + 'px'
-    canvas.style.height = h + 'px'
+    const w = container.clientWidth, h = container.clientHeight
+    canvas.width = w * dpr; canvas.height = h * dpr
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px'
   }
   resize()
-  new ResizeObserver(resize).observe(container)
 
-  let tooltip = document.getElementById('graph-tooltip')
-  if (!tooltip) {
-    tooltip = document.createElement('div')
+  if (!graphSetup) {
+    graphSetup = true
+    new ResizeObserver(resize).observe(container)
+
+    const tooltip = document.createElement('div')
     tooltip.id = 'graph-tooltip'
-    tooltip.style.cssText = `position:absolute;background:#faf9f7;border:1px solid #e8e4dc;border-radius:3px;padding:6px 10px;font-size:11px;font-family:'Times New Roman',Times,serif;font-style:italic;color:#1a1816;max-width:180px;line-height:1.5;pointer-events:none;display:none;z-index:100;`
+    tooltip.style.cssText = `position:absolute;background:#000055;border:2px solid #ff00ff;padding:5px 9px;font-size:11px;font-family:'Comic Sans MS',cursive;color:#00ffff;max-width:200px;line-height:1.5;pointer-events:none;display:none;z-index:100;`
     container.appendChild(tooltip)
-  }
 
-  canvas.addEventListener('mousedown', e => {
-    mouseDownPos = { x: e.clientX, y: e.clientY }
-    const pos = getCanvasPos(canvas, e.clientX, e.clientY)
-    const hit = nodes.find(n => !n.fixed && Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 6)
-    if (hit) {
-      dragNode = hit; hit.vx = 0; hit.vy = 0
-      canvas.style.cursor = 'grabbing'
-    } else {
-      isPanning = true
-      panStartX = e.clientX - panX
-      panStartY = e.clientY - panY
-      canvas.style.cursor = 'grabbing'
-    }
-  })
+    let mouseDownPos = null
 
-  canvas.addEventListener('mousemove', e => {
-    const pos = getCanvasPos(canvas, e.clientX, e.clientY)
-    if (dragNode) {
-      dragNode.x = pos.x; dragNode.y = pos.y
-      dragNode.vx = 0; dragNode.vy = 0
-      tooltip.style.display = 'none'
-      return
-    }
-    if (isPanning) {
-      panX = e.clientX - panStartX
-      panY = e.clientY - panStartY
-      return
-    }
-    hoveredNode = nodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 4) || null
-    canvas.style.cursor = hoveredNode ? 'pointer' : 'grab'
-    if (hoveredNode) {
-      const rect = canvas.getBoundingClientRect()
-      tooltip.style.display = 'block'
-      tooltip.style.left = (e.clientX - rect.left + 14) + 'px'
-      tooltip.style.top = (e.clientY - rect.top - 10) + 'px'
-      tooltip.textContent = hoveredNode.fullText
-    } else {
-      tooltip.style.display = 'none'
-    }
-  })
-
-  let mouseDownPos = null
-
-  canvas.addEventListener('mouseup', e => {
-    const wasDragging = !!dragNode
-    const wasPanning = isPanning
-    dragNode = null
-    isPanning = false
-    canvas.style.cursor = hoveredNode ? 'pointer' : 'grab'
-
-    const moved = mouseDownPos && (Math.abs(e.clientX - mouseDownPos.x) > 4 || Math.abs(e.clientY - mouseDownPos.y) > 4)
-    if (!wasDragging && !wasPanning && !moved) {
+    canvas.addEventListener('mousedown', e => {
+      wakeGraph()
+      mouseDownPos = { x: e.clientX, y: e.clientY }
       const pos = getCanvasPos(canvas, e.clientX, e.clientY)
-      const hit = nodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 4)
+      const hit = nodes.find(n => !n.fixed && Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 6)
       if (hit) {
-        selectedNode = selectedNode?.id === hit.id ? null : hit
-        if (selectedNode) {
-          showNodeDetail(selectedNode)
-          if (hit.type === 'memory') highlightNode(hit.id)
-        } else {
-          hideNodeDetail()
-        }
+        dragNode = hit; hit.vx = 0; hit.vy = 0
+        canvas.style.cursor = 'grabbing'
       } else {
-        selectedNode = null
-        hideNodeDetail()
+        isPanning = true
+        panStartX = e.clientX - panX
+        panStartY = e.clientY - panY
+        canvas.style.cursor = 'grabbing'
       }
-    }
-    mouseDownPos = null
-  })
-
-  canvas.addEventListener('wheel', e => {
-    e.preventDefault()
-    zoom = Math.max(0.2, Math.min(4, zoom * (e.deltaY < 0 ? 1.1 : 0.9)))
-  }, { passive: false })
-
-  canvas.addEventListener('mouseleave', () => {
-    tooltip.style.display = 'none'
-    dragNode = null
-    isPanning = false
-    canvas.style.cursor = 'grab'
-  })
-
-  canvas.style.cursor = 'grab'
-
-  function tick() {
-    nodes.forEach(n => {
-      if (n === dragNode || n.fixed) return
-      n.vx *= 0.82; n.vy *= 0.82
-      nodes.forEach(m => {
-        if (m.id === n.id) return
-        const dx = n.x - m.x, dy = n.y - m.y
-        const d = Math.max(Math.hypot(dx, dy), 1)
-        const rep = n.type === 'memory' ? 600 : 1200
-        n.vx += (dx / d) * (rep / (d * d))
-        n.vy += (dy / d) * (rep / (d * d))
-      })
-      n.vx -= n.x * 0.002
-      n.vy -= n.y * 0.002
     })
 
+    canvas.addEventListener('mousemove', e => {
+      const tip = document.getElementById('graph-tooltip')
+      const pos = getCanvasPos(canvas, e.clientX, e.clientY)
+      if (dragNode) { dragNode.x = pos.x; dragNode.y = pos.y; dragNode.vx = 0; dragNode.vy = 0; if (tip) tip.style.display = 'none'; return }
+      if (isPanning) { panX = e.clientX - panStartX; panY = e.clientY - panStartY; if (!animFrame) draw(); return }
+      const prevHovered = hoveredNode
+      hoveredNode = nodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 4) || null
+      canvas.style.cursor = hoveredNode ? 'pointer' : 'grab'
+      if (hoveredNode && tip) {
+        const rect = canvas.getBoundingClientRect()
+        tip.style.display = 'block'
+        tip.style.left = (e.clientX - rect.left + 14) + 'px'
+        tip.style.top  = (e.clientY - rect.top - 10) + 'px'
+        tip.textContent = hoveredNode.type === 'memory'
+          ? hoveredNode.fullText
+          : `${hoveredNode.fullText} (${(hoveredNode.memories||[]).length} memories)`
+      } else if (tip) tip.style.display = 'none'
+      if (prevHovered !== hoveredNode && !animFrame) draw()
+    })
+
+    canvas.addEventListener('mouseup', e => {
+      const wasDragging = !!dragNode, wasPanning = isPanning
+      dragNode = null; isPanning = false
+      canvas.style.cursor = hoveredNode ? 'pointer' : 'grab'
+      const moved = mouseDownPos && (Math.abs(e.clientX - mouseDownPos.x) > 4 || Math.abs(e.clientY - mouseDownPos.y) > 4)
+      if (!wasDragging && !wasPanning && !moved) {
+        const pos = getCanvasPos(canvas, e.clientX, e.clientY)
+        const hit = nodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 4)
+        if (hit) {
+          if (selectedNode?.id === hit.id) { hideNodePopup() }
+          else { showNodePopup(hit) }
+        } else {
+          hideNodePopup()
+        }
+      }
+      mouseDownPos = null
+    })
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault()
+      zoom = Math.max(0.2, Math.min(4, zoom * (e.deltaY < 0 ? 1.1 : 0.9)))
+      if (!animFrame) draw()
+    }, { passive: false })
+
+    canvas.addEventListener('mouseleave', () => {
+      const tip = document.getElementById('graph-tooltip')
+      if (tip) tip.style.display = 'none'
+      dragNode = null; isPanning = false
+      canvas.style.cursor = 'grab'
+    })
+
+    canvas.style.cursor = 'grab'
+  }
+
+  function tick() {
+    let ke = 0
+    nodes.forEach(n => {
+      if (n === dragNode || n.fixed) return
+      n.vx *= 0.8; n.vy *= 0.8
+      nodes.forEach(m => {
+        if (m.id === n.id) return
+        const dx = n.x - m.x, dy = n.y - m.y, d = Math.max(Math.hypot(dx, dy), 1)
+        if (d > 350) return
+        const rep = n.type === 'memory' ? 600 : 1200
+        n.vx += (dx / d) * (rep / (d * d)); n.vy += (dy / d) * (rep / (d * d))
+      })
+      n.vx -= n.x * 0.002; n.vy -= n.y * 0.002
+      ke += n.vx * n.vx + n.vy * n.vy
+    })
     edges.forEach(e => {
-      const a = nodes.find(n => n.id === e.a)
-      const b = nodes.find(n => n.id === e.b)
+      const a = nodeById.get(e.a), b = nodeById.get(e.b)
       if (!a || !b) return
-      const dx = b.x - a.x, dy = b.y - a.y
-      const d = Math.max(Math.hypot(dx, dy), 1)
-      const target = e.strength || 140
-      const f = (d - target) * 0.018
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.max(Math.hypot(dx, dy), 1)
+      const f = (d - (e.strength || 140)) * 0.018
       const fx = (dx / d) * f, fy = (dy / d) * f
       if (!a.fixed && a !== dragNode) { a.vx += fx; a.vy += fy }
       if (!b.fixed && b !== dragNode) { b.vx -= fx; b.vy -= fy }
     })
-
-    nodes.forEach(n => {
-      if (n.fixed || n === dragNode) return
-      n.x += n.vx; n.y += n.vy
-    })
-
+    nodes.forEach(n => { if (n.fixed || n === dragNode) return; n.x += n.vx; n.y += n.vy })
     draw()
+    if (ke < 0.08 && !dragNode && !isPanning) {
+      graphSettled = true; animFrame = null; return
+    }
     animFrame = requestAnimationFrame(tick)
   }
+  tickFn = tick
 
   function draw() {
     const dpr = window.devicePixelRatio || 1
     const w = parseInt(canvas.style.width) || container.clientWidth
     const h = parseInt(canvas.style.height) || container.clientHeight
-    const panelW = 280
-
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.save()
     ctx.scale(dpr, dpr)
-    ctx.translate((w - panelW) / 2 + panX, h / 2 + panY)
+    ctx.translate(w / 2 + panX, h / 2 + panY)
     ctx.scale(zoom, zoom)
 
+    // edges
     edges.forEach(e => {
-      const a = nodes.find(n => n.id === e.a)
-      const b = nodes.find(n => n.id === e.b)
+      const a = nodeById.get(e.a), b = nodeById.get(e.b)
       if (!a || !b) return
-      ctx.beginPath()
-      ctx.moveTo(a.x, a.y)
-      ctx.lineTo(b.x, b.y)
-      ctx.strokeStyle = e.weak ? '#ede8e0' : '#d4cfc6'
-      ctx.lineWidth = e.weak ? 0.5 : 1
-      ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y)
+      ctx.strokeStyle = e.weak ? 'rgba(0,255,0,0.2)' : 'rgba(0,255,255,0.4)'
+      ctx.lineWidth = e.weak ? 0.5 : 1.5; ctx.stroke()
     })
 
+    // nodes
     nodes.forEach(n => {
-      const isHovered = hoveredNode?.id === n.id
+      const isHovered  = hoveredNode?.id === n.id
       const isSelected = selectedNode?.id === n.id
 
       if (isSelected) {
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r + 5, 0, Math.PI * 2)
-        ctx.strokeStyle = '#9a9488'
-        ctx.lineWidth = 1.5
-        ctx.setLineDash([3, 3])
-        ctx.stroke()
-        ctx.setLineDash([])
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 7, 0, Math.PI * 2)
+        ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2
+        ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([])
       }
 
-      ctx.beginPath()
-      ctx.arc(n.x, n.y, n.r + (isHovered ? 2 : 0), 0, Math.PI * 2)
-      if (n.type === 'user') ctx.fillStyle = '#1a1816'
-      else if (n.type === 'category') ctx.fillStyle = isSelected ? '#5a5550' : isHovered ? '#7a7470' : '#9a9488'
-      else ctx.fillStyle = isSelected ? '#9a9488' : isHovered ? '#b0a898' : '#c8c2b8'
-      ctx.fill()
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + (isHovered ? 3 : 0), 0, Math.PI * 2)
+      if (n.type === 'user') {
+        ctx.fillStyle = '#ff00ff'; ctx.fill()
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2 / zoom; ctx.stroke()
+      } else if (n.type === 'category') {
+        ctx.fillStyle = isHovered ? '#ffff00' : '#ff8800'; ctx.fill()
+      } else {
+        ctx.fillStyle = isHovered ? '#ffffff' : '#00ffff'; ctx.fill()
+      }
 
       ctx.textAlign = 'center'
       if (n.type === 'user') {
-        ctx.fillStyle = '#faf9f7'
-        ctx.font = 'bold 9px Times New Roman'
-        ctx.textBaseline = 'middle'
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px "Comic Sans MS",cursive'; ctx.textBaseline = 'middle'
         ctx.fillText(n.label, n.x, n.y)
       } else if (n.type === 'category') {
-        ctx.fillStyle = '#faf9f7'
-        ctx.font = 'bold 9px Times New Roman'
-        ctx.textBaseline = 'middle'
+        ctx.fillStyle = '#000000'; ctx.font = 'bold 9px "Comic Sans MS",cursive'; ctx.textBaseline = 'middle'
         ctx.fillText(n.label, n.x, n.y)
       } else {
-        ctx.fillStyle = '#5a5550'
-        ctx.font = '10px Times New Roman'
-        ctx.textBaseline = 'top'
-        ctx.fillText(n.label, n.x, n.y + n.r + 3)
+        ctx.fillStyle = isHovered ? '#ffffff' : '#00ff00'
+        ctx.font = '10px "Comic Sans MS",cursive'; ctx.textBaseline = 'top'
+        ctx.fillText(n.label, n.x, n.y + n.r + 4)
       }
     })
 
@@ -1054,47 +1047,62 @@ function runGraph() {
 
     if (memory.length === 0) {
       ctx.save()
-      ctx.fillStyle = '#c8c2b8'
-      ctx.font = 'italic 13px Times New Roman'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('memories will appear here as you chat', (w - panelW) / 2, h / 2 + 50)
+      ctx.fillStyle = '#00ff00'; ctx.font = 'bold 13px "Comic Sans MS",cursive'
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+      ctx.fillText('✨ no memories yet — start chatting!!! ✨', w / 2, h / 2 + 50)
       ctx.restore()
     }
   }
 
-  if (animFrame) cancelAnimationFrame(animFrame)
-  tick()
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null }
+  graphSettled = false
+  animFrame = requestAnimationFrame(tick)
+}
+
+function wakeGraph() {
+  if (animFrame || !tickFn) return
+  graphSettled = false
+  animFrame = requestAnimationFrame(tickFn)
 }
 
 function renderGraph() {
-  buildGraph()
-  resetGraphView()
-  if (animFrame) cancelAnimationFrame(animFrame)
-  graphInited = true
-  runGraph()
+  buildGraph(); resetGraphView()
+  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null }
+  graphInited = true; runGraph()
 }
 
 // ── SETTINGS ──
 function loadSettings() {
-  document.getElementById('s-name').value = settings.name || ''
-  document.getElementById('s-age').value = settings.age || ''
-  document.getElementById('s-location').value = settings.location || ''
-  document.getElementById('s-job').value = settings.job || ''
+  document.getElementById('s-name').value      = settings.name || ''
+  document.getElementById('s-age').value       = settings.age || ''
+  document.getElementById('s-location').value  = settings.location || ''
+  document.getElementById('s-job').value       = settings.job || ''
   document.getElementById('s-interests').value = settings.interests || ''
-  document.getElementById('s-extra').value = settings.extra || ''
-  document.getElementById('s-model').value = settings.model || 'llama3'
+  document.getElementById('s-extra').value     = settings.extra || ''
+  document.getElementById('s-model').value     = settings.model || 'llama3'
+  loadAvailableModels()
+}
+
+async function loadAvailableModels() {
+  try {
+    const res = await fetch('http://localhost:11434/api/tags')
+    const data = await res.json()
+    const list = document.getElementById('model-list')
+    if (list && data.models?.length > 0) {
+      list.innerHTML = data.models.map(m => `<option value="${m.name}">`).join('')
+    }
+  } catch {}
 }
 
 document.getElementById('save-settings').onclick = () => {
   settings = {
-    name: document.getElementById('s-name').value,
-    age: document.getElementById('s-age').value,
-    location: document.getElementById('s-location').value,
-    job: document.getElementById('s-job').value,
+    name:      document.getElementById('s-name').value,
+    age:       document.getElementById('s-age').value,
+    location:  document.getElementById('s-location').value,
+    job:       document.getElementById('s-job').value,
     interests: document.getElementById('s-interests').value,
-    extra: document.getElementById('s-extra').value,
-    model: document.getElementById('s-model').value || 'llama3'
+    extra:     document.getElementById('s-extra').value,
+    model:     document.getElementById('s-model').value || 'llama3'
   }
   saveJSON(SETTINGS_FILE, settings)
   const note = document.getElementById('saved-note')
@@ -1108,27 +1116,26 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
     const view = btn.dataset.view
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'))
     btn.classList.add('active')
-    document.getElementById('chat-view').style.display = view === 'chat' ? 'flex' : 'none'
+    document.getElementById('chat-view').style.display     = view === 'chat' ? 'flex' : 'none'
     document.getElementById('memory-view').classList.toggle('active', view === 'memory')
     document.getElementById('settings-view').classList.toggle('active', view === 'settings')
-    if (view === 'memory') {
-      renderMemoryPanel()
-      if (animFrame) cancelAnimationFrame(animFrame)
-      graphInited = false
-      renderGraph()
-    }
+    if (view === 'memory') { renderMemoryPanel(); if (animFrame) cancelAnimationFrame(animFrame); graphInited = false; renderGraph() }
     if (view === 'settings') loadSettings()
   }
+})
+
+// ── SIDEBAR SEARCH ──
+document.getElementById('sidebar-search').addEventListener('input', function() {
+  searchQuery = this.value
+  renderThreads()
 })
 
 // ── NEW CHAT ──
 document.getElementById('new-chat').onclick = () => {
   const c = { id: nextId++, name: 'new conversation', messages: [] }
-  chats.unshift(c)
-  activeId = c.id
+  chats.unshift(c); activeId = c.id
   saveJSON(CHATS_FILE, chats)
-  renderThreads()
-  renderMessages()
+  renderThreads(); renderMessages()
 }
 
 // ── INPUT ──
@@ -1136,13 +1143,12 @@ document.getElementById('sendbtn').onclick = send
 document.getElementById('userinput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
 })
-document.getElementById('userinput').addEventListener('input', function () {
+document.getElementById('userinput').addEventListener('input', function() {
   this.style.height = 'auto'
   this.style.height = Math.min(this.scrollHeight, 120) + 'px'
 })
 
-// ── SEED MEMORY FOR TESTING (remove when done) ──
-// uncomment this block, reload once, then comment it back out
+// ── SEED MEMORY FOR TESTING ──
 /*
 memory = [
   { id: 1, text: 'plays Valorant every day', timestamp: new Date().toISOString() },
@@ -1158,6 +1164,35 @@ memory = [
 ]
 saveJSON(MEMORY_FILE, memory)
 */
+
+// ── ADD MEMORY ──
+document.getElementById('add-memory-btn').onclick = () => {
+  const form = document.getElementById('add-memory-form')
+  form.classList.toggle('show')
+  if (form.classList.contains('show')) document.getElementById('add-memory-input').focus()
+}
+
+document.getElementById('add-memory-submit').onclick = () => {
+  const input = document.getElementById('add-memory-input')
+  const fact = input.value.trim()
+  if (!fact) return
+  if (isDuplicateMemory(fact)) {
+    input.style.border = '3px solid #ff0000'
+    setTimeout(() => input.style.border = '3px inset #c0c0c0', 1200)
+    return
+  }
+  memory.push({ id: Date.now() + Math.random(), text: fact, timestamp: new Date().toISOString() })
+  saveJSON(MEMORY_FILE, memory)
+  renderMemoryPanel()
+  graphInited = false
+  if (document.getElementById('memory-view').classList.contains('active')) renderGraph()
+  input.value = ''
+  document.getElementById('add-memory-form').classList.remove('show')
+}
+
+document.getElementById('add-memory-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('add-memory-submit').click() }
+})
 
 // ── INIT ──
 renderThreads()
