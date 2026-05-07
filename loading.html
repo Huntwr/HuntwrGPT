@@ -4,79 +4,205 @@
 <meta charset="UTF-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @keyframes rainbow {
+    0%   { color: #ff0000; }
+    16%  { color: #ff8800; }
+    33%  { color: #ffff00; }
+    50%  { color: #00ff00; }
+    66%  { color: #00ffff; }
+    83%  { color: #ff00ff; }
+    100% { color: #ff0000; }
+  }
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes marquee-scroll {
+    0%   { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+  @keyframes neon-glow {
+    0%, 100% { text-shadow: 0 0 4px #00ffff, 0 0 8px #00ffff; }
+    50%       { text-shadow: 0 0 16px #00ffff, 0 0 32px #00ffff; }
+  }
+
   body {
-    background: #faf9f7;
-    font-family: 'Times New Roman', Times, serif;
+    background-color: #000022;
+    background-image:
+      radial-gradient(circle at 2px 2px, rgba(255,255,255,0.65) 1px, transparent 0),
+      radial-gradient(circle at 18px 18px, rgba(255,255,255,0.35) 0.5px, transparent 0);
+    background-size: 28px 28px;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
     height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 18px;
     -webkit-app-region: drag;
     user-select: none;
+    overflow: hidden;
   }
+
+  .star {
+    font-size: 28px;
+    display: inline-block;
+    animation: spin 3s linear infinite;
+  }
+
+  .star.rev { animation-direction: reverse; animation-duration: 2s; }
+
   h1 {
-    font-size: 22px;
-    color: #1a1816;
-    letter-spacing: 3px;
-    font-weight: normal;
-    font-variant: small-caps;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    animation: rainbow 2s linear infinite;
   }
+
+  .tagline {
+    font-size: 12px;
+    color: #ffff00;
+    letter-spacing: 2px;
+    text-align: center;
+    animation: neon-glow 2s ease-in-out infinite;
+    color: #00ffff;
+  }
+
   #bar-wrap {
-    width: 260px;
-    height: 2px;
-    background: #e8e4dc;
+    width: 300px;
+    height: 20px;
+    border: 3px inset #c0c0c0;
+    background: #000000;
     position: relative;
     overflow: hidden;
-    border-radius: 2px;
   }
+
   #bar {
     height: 100%;
-    background: #1a1816;
+    background: #00ff00;
     width: 0%;
     transition: width 0.3s ease;
-    border-radius: 2px;
+    box-shadow: 0 0 8px #00ff00;
   }
+
   #bar.indeterminate {
-    width: 35%;
-    animation: slide 1.4s infinite ease-in-out;
+    width: 40%;
+    background: #ff00ff;
+    box-shadow: 0 0 8px #ff00ff;
+    animation: slide 1.2s infinite ease-in-out;
     transition: none;
   }
+
   @keyframes slide {
-    0% { transform: translateX(-150%) }
-    100% { transform: translateX(500%) }
+    0%   { transform: translateX(-150%); }
+    100% { transform: translateX(350%); }
   }
-  #status {
-    font-size: 12px;
-    font-style: italic;
-    color: #9a9488;
-    min-height: 18px;
-    text-align: center;
-    max-width: 280px;
-  }
+
   #pct {
     font-size: 11px;
-    color: #c8c2b8;
+    color: #ffff00;
+    font-family: 'Courier New', monospace;
     min-height: 16px;
-    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
   }
+
+  #status {
+    font-size: 12px;
+    color: #00ffff;
+    min-height: 18px;
+    text-align: center;
+    max-width: 320px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    animation: neon-glow 2s ease-in-out infinite;
+  }
+
   #error-msg {
     font-size: 12px;
-    color: #c0392b;
-    font-style: italic;
+    color: #ff0000;
+    font-weight: bold;
     text-align: center;
-    max-width: 280px;
+    max-width: 300px;
     display: none;
+    border: 3px solid #ff0000;
+    padding: 8px 14px;
+    font-family: 'Comic Sans MS', cursive;
+    animation: blink 1s step-start infinite;
   }
+
+  .marquee-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #000000;
+    border-top: 2px solid #00ff00;
+    height: 22px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  .marquee-text {
+    white-space: nowrap;
+    font-size: 11px;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    animation: marquee-scroll 18s linear infinite;
+    display: inline-block;
+    letter-spacing: 1px;
+  }
+
+  .bottom-bar {
+    position: absolute;
+    bottom: 22px;
+    left: 0;
+    right: 0;
+    background: #c0c0c0;
+    border-top: 3px outset #c0c0c0;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 12px;
+  }
+
+  .status-chip {
+    font-size: 9px;
+    font-family: 'Courier New', monospace;
+    color: #000000;
+    border-right: 1px solid #808080;
+    padding-right: 10px;
+  }
+
+  .status-chip:last-child { border-right: none; }
 </style>
 </head>
 <body>
+  <span class="star">⭐</span>
   <h1>Huntwr GPT</h1>
+  <span class="star rev">⭐</span>
+  <div class="tagline">THE MOST ADVANCED AI OF ALL TIME!!!</div>
   <div id="bar-wrap"><div id="bar" class="indeterminate"></div></div>
   <div id="pct"></div>
   <div id="status">starting up...</div>
   <div id="error-msg"></div>
+
+  <div class="bottom-bar">
+    <span class="status-chip">🔒 SECURE</span>
+    <span class="status-chip">HUNTWR GPT v1.0</span>
+    <span class="status-chip">© 1997 HUNTWR GPT INC.</span>
+  </div>
+
+  <div class="marquee-bar">
+    <span class="marquee-text">🔥 LOADING HUNTWR GPT — PLEASE WAIT!!! 🔥 DO NOT TURN OFF YOUR COMPUTER 🔥 BEST VIEWED IN NETSCAPE NAVIGATOR 4.0 AT 800x600 🔥 POWERED BY OLLAMA AI TECHNOLOGY!!! 🔥</span>
+  </div>
 
 <script>
 const { ipcRenderer } = require('electron')
@@ -89,19 +215,19 @@ ipcRenderer.on('status', (e, { msg, progress, mode }) => {
   if (mode === 'error') {
     statusEl.style.display = 'none'
     errorEl.style.display = 'block'
-    errorEl.textContent = msg
+    errorEl.textContent = '⚠️ ERROR: ' + msg
     bar.classList.remove('indeterminate')
     bar.style.width = '0%'
     pctEl.textContent = ''
     return
   }
 
-  statusEl.textContent = msg
+  statusEl.textContent = '>>> ' + msg.toUpperCase() + '...'
 
   if (mode === 'download' && progress !== null) {
     bar.classList.remove('indeterminate')
     bar.style.width = Math.min(progress, 100) + '%'
-    pctEl.textContent = progress + '%'
+    pctEl.textContent = progress + '% COMPLETE'
   } else {
     bar.classList.add('indeterminate')
     pctEl.textContent = ''
