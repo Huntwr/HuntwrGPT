@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #faf9f7;
+    font-family: 'Times New Roman', Times, serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+  h1 {
+    font-size: 22px;
+    color: #1a1816;
+    letter-spacing: 3px;
+    font-weight: normal;
+    font-variant: small-caps;
+  }
+  #bar-wrap {
+    width: 260px;
+    height: 2px;
+    background: #e8e4dc;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+  #bar {
+    height: 100%;
+    background: #1a1816;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 2px;
+  }
+  #bar.indeterminate {
+    width: 35%;
+    animation: slide 1.4s infinite ease-in-out;
+    transition: none;
+  }
+  @keyframes slide {
+    0% { transform: translateX(-150%) }
+    100% { transform: translateX(500%) }
+  }
+  #status {
+    font-size: 12px;
+    font-style: italic;
+    color: #9a9488;
+    min-height: 18px;
+    text-align: center;
+    max-width: 280px;
+  }
+  #pct {
+    font-size: 11px;
+    color: #c8c2b8;
+    min-height: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  #error-msg {
+    font-size: 12px;
+    color: #c0392b;
+    font-style: italic;
+    text-align: center;
+    max-width: 280px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <h1>Huntwr GPT</h1>
+  <div id="bar-wrap"><div id="bar" class="indeterminate"></div></div>
+  <div id="pct"></div>
+  <div id="status">starting up...</div>
+  <div id="error-msg"></div>
+
+<script>
+const { ipcRenderer } = require('electron')
+const bar = document.getElementById('bar')
+const statusEl = document.getElementById('status')
+const pctEl = document.getElementById('pct')
+const errorEl = document.getElementById('error-msg')
+
+ipcRenderer.on('status', (e, { msg, progress, mode }) => {
+  if (mode === 'error') {
+    statusEl.style.display = 'none'
+    errorEl.style.display = 'block'
+    errorEl.textContent = msg
+    bar.classList.remove('indeterminate')
+    bar.style.width = '0%'
+    pctEl.textContent = ''
+    return
+  }
+
+  statusEl.textContent = msg
+
+  if (mode === 'download' && progress !== null) {
+    bar.classList.remove('indeterminate')
+    bar.style.width = Math.min(progress, 100) + '%'
+    pctEl.textContent = progress + '%'
+  } else {
+    bar.classList.add('indeterminate')
+    pctEl.textContent = ''
+  }
+})
+</script>
+</body>
+</html>

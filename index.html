@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>HuntwrGPT</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #faf9f7;
+    --bg2: #f4f2ee;
+    --border: #e8e4dc;
+    --text: #1a1816;
+    --muted: #9a9488;
+    --subtle: #c8c2b8;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Times New Roman', Times, serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #drag {
+    height: 38px;
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 80px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  #drag span {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    font-variant: small-caps;
+  }
+  .nav-tabs {
+    margin-left: auto;
+    display: flex;
+    -webkit-app-region: no-drag;
+    height: 100%;
+  }
+  .nav-tab {
+    padding: 0 18px;
+    font-size: 11px;
+    color: var(--subtle);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    letter-spacing: 1px;
+    font-variant: small-caps;
+    border-left: 1px solid var(--border);
+    transition: all 0.1s;
+    font-family: 'Times New Roman', Times, serif;
+    background: none;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--bg2); }
+  .nav-tab.active { color: var(--text); background: var(--bg2); }
+
+  #app { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+  #sidebar {
+    width: 190px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 12px 14px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .sidebar-label {
+    font-size: 9px;
+    color: var(--subtle);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    font-variant: small-caps;
+  }
+  #thread-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    min-height: 0;
+  }
+  .thread {
+    padding: 8px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.12s;
+    font-style: italic;
+    flex-shrink: 0;
+  }
+  .thread:hover { background: var(--bg); color: var(--text); }
+  .thread:hover .del-thread { opacity: 1; }
+  .thread.active { background: var(--bg); border-color: var(--border); color: var(--text); }
+  .thread-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .del-thread {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: var(--subtle);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+    transition: color 0.1s;
+    font-family: 'Times New Roman', Times, serif;
+    flex-shrink: 0;
+  }
+  .del-thread:hover { color: #c0392b; }
+  #new-chat {
+    margin-top: 10px;
+    padding: 9px 10px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    text-align: left;
+    transition: all 0.12s;
+    width: 100%;
+    flex-shrink: 0;
+  }
+  #new-chat:hover { background: var(--bg); color: var(--text); border-color: var(--text); }
+
+  #chat-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .msg { display: flex; flex-direction: column; max-width: 72%; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.ai { align-self: flex-start; align-items: flex-start; }
+  .msg-label {
+    font-size: 9px;
+    color: var(--subtle);
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    font-variant: small-caps;
+  }
+  .bubble {
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    border-radius: 2px;
+  }
+  .msg.ai .bubble { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-top-left-radius: 0; }
+  .msg.user .bubble { background: var(--text); color: var(--bg); border-top-right-radius: 0; }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+  .typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--subtle); animation: bop 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bop { 0%,80%,100%{transform:translateY(0);opacity:0.3} 40%{transform:translateY(-4px);opacity:1} }
+
+  #inputbar {
+    padding: 16px 32px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  #userinput {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 11px 14px;
+    font-size: 13px;
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    color: var(--text);
+    outline: none;
+    resize: none;
+    transition: border-color 0.15s;
+    line-height: 1.5;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  #userinput::placeholder { color: var(--subtle); }
+  #userinput:focus { border-color: var(--muted); }
+  #sendbtn {
+    width: 38px; height: 38px;
+    background: var(--text);
+    border: none; border-radius: 2px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.12s;
+  }
+  #sendbtn:hover { opacity: 0.75; }
+  #sendbtn svg { width: 13px; height: 13px; fill: var(--bg); }
+
+  #memory-view {
+    flex: 1;
+    display: none;
+    overflow: hidden;
+    position: relative;
+  }
+  #memory-view.active { display: flex; }
+  #graph-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  #graph-canvas { position: absolute; top: 0; left: 0; }
+
+  #memory-list-panel {
+    width: 280px;
+    border-left: 1px solid var(--border);
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #memory-panel-header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #memory-panel-header span {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    font-variant: small-caps;
+  }
+  #memory-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .memory-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    transition: border-color 0.12s;
+  }
+  .memory-item:hover { border-color: var(--muted); }
+  .memory-item.highlighted { border-color: var(--text); }
+  .memory-text { flex: 1; font-size: 12px; line-height: 1.5; color: var(--text); font-style: italic; }
+  .memory-tag { font-size: 9px; color: var(--subtle); letter-spacing: 1px; font-variant: small-caps; margin-top: 4px; }
+  .del-memory {
+    background: none; border: none;
+    color: var(--subtle); cursor: pointer;
+    font-size: 14px; padding: 0;
+    transition: color 0.1s;
+    font-family: 'Times New Roman', Times, serif;
+    flex-shrink: 0; line-height: 1;
+  }
+  .del-memory:hover { color: #c0392b; }
+
+  #settings-view {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 40px 60px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  #settings-view.active { display: flex; }
+  .settings-section { margin-bottom: 40px; }
+  .settings-title {
+    font-size: 11px;
+    color: var(--subtle);
+    letter-spacing: 3px;
+    font-variant: small-caps;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .settings-label { font-size: 12px; color: var(--muted); font-style: italic; }
+  .settings-input {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  .settings-input:focus { border-color: var(--muted); }
+  .settings-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .settings-save {
+    padding: 10px 24px;
+    background: var(--text);
+    color: var(--bg);
+    border: none; border-radius: 2px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13px; font-style: italic;
+    cursor: pointer; transition: opacity 0.12s;
+    align-self: flex-start;
+  }
+  .settings-save:hover { opacity: 0.75; }
+  .saved-note {
+    font-size: 11px; color: var(--muted);
+    font-style: italic; margin-left: 12px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .saved-note.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="drag">
+  <span>Huntwr GPT</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-view="chat">Chat</button>
+    <button class="nav-tab" data-view="memory">Memory</button>
+    <button class="nav-tab" data-view="settings">Settings</button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-label">Conversations</div>
+    <div id="thread-list"></div>
+    <button id="new-chat">+ new conversation</button>
+  </div>
+
+  <div id="chat-view">
+    <div id="messages"></div>
+    <div id="inputbar">
+      <textarea id="userinput" rows="1" placeholder="say sum..."></textarea>
+      <button id="sendbtn">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="memory-view">
+    <div id="graph-container">
+      <canvas id="graph-canvas"></canvas>
+    </div>
+    <div id="memory-list-panel">
+      <div id="memory-panel-header">
+        <span>Memory nodes</span>
+      </div>
+      <div id="memory-items"></div>
+    </div>
+  </div>
+
+  <div id="settings-view">
+    <div class="settings-section">
+      <div class="settings-title">About You</div>
+      <div class="settings-row">
+        <div class="settings-label">your name</div>
+        <input class="settings-input" id="s-name" placeholder="what do people call you" />
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">age</div>
+        <input class="settings-input" id="s-age" placeholder="how old are you" />
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">location</div>
+        <input class="settings-input" id="s-location" placeholder="where you at" />
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">occupation / what you do</div>
+        <input class="settings-input" id="s-job" placeholder="what do you do" />
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">interests & hobbies</div>
+        <textarea class="settings-input settings-textarea" id="s-interests" placeholder="valorant, music, whatever"></textarea>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">anything else huntwr should know about you</div>
+        <textarea class="settings-input settings-textarea" id="s-extra" placeholder="goals, personality, stuff that matters"></textarea>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-title">Model</div>
+      <div class="settings-row">
+        <div class="settings-label">ollama model name</div>
+        <input class="settings-input" id="s-model" placeholder="llama3" />
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <button class="settings-save" id="save-settings">save</button>
+      <span class="saved-note" id="saved-note">saved.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const fs = require('fs')
+const path = require('path')
+const os = require('os')
+
+// ── STORAGE ──
+const DATA_DIR = path.join(os.homedir(), '.huntwrgpt')
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR)
+const CHATS_FILE = path.join(DATA_DIR, 'chats.json')
+const MEMORY_FILE = path.join(DATA_DIR, 'memory.json')
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json')
+
+function loadJSON(file, def) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')) } catch { return def }
+}
+function saveJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2))
+}
+
+let chats = loadJSON(CHATS_FILE, [{ id: 1, name: 'new conversation', messages: [] }])
+let memory = loadJSON(MEMORY_FILE, [])
+let settings = loadJSON(SETTINGS_FILE, { name:'', age:'', location:'', job:'', interests:'', extra:'', model:'llama3' })
+let activeId = chats[0]?.id || 1
+let nextId = Math.max(...chats.map(c => c.id), 1) + 1
+let isWaiting = false
+
+function getActive() { return chats.find(c => c.id === activeId) }
+
+// ── PERSONA ──
+function buildPersona() {
+  const s = settings
+  let userInfo = ''
+  if (s.name) userInfo += `\nThe user's name is ${s.name}.`
+  if (s.age) userInfo += ` They are ${s.age} years old.`
+  if (s.location) userInfo += ` They live in ${s.location}.`
+  if (s.job) userInfo += ` They do: ${s.job}.`
+  if (s.interests) userInfo += ` Their interests: ${s.interests}.`
+  if (s.extra) userInfo += ` Extra context: ${s.extra}.`
+
+  let memoryInfo = ''
+  if (memory.length > 0) {
+    memoryInfo = '\n\nThings you remember about this user:\n' + memory.map(m => `- ${m.text}`).join('\n')
+  }
+
+  return `You are HuntwrGPT — an AI that talks exactly like Hunter. Here is how Hunter talks:
+- casual and real, like texting. lowercase mostly.
+- says "bet", "bro", "deaduzz", "lit", "frfr", "yk", "sum", "thats whats up" naturally
+- hypes people up: "LETS GOOOO thats whats up"
+- gives advice like: "damn bro well think about this..."
+- obsessed with Valorant. knows everything about it.
+- ends convos with "byeee" or "see ya"
+- short responses — 1 to 3 sentences unless they actually need more
+- never says "certainly" or "of course" or "great question"
+- matches the user's energy
+- when something is vague, ask "what u mean tho"
+
+MEMORY RULE — mandatory, every single response:
+If the user reveals ANYTHING personal — their name, age, location, job, hobbies, opinions, relationships, goals, feelings, what they like or dislike — you MUST append one or more [REMEMBER: ...] tags at the very end of your reply. Do this automatically. Do not wait to be asked.
+
+Each tag must contain the real specific fact the user just told you. Not a placeholder. Not a description of what kind of fact it is. The actual fact itself.
+
+Correct examples:
+- User says "im from austin" → [REMEMBER: lives in Austin]
+- User says "i play val every day" → [REMEMBER: plays Valorant every day]
+- User says "my name is jake" → [REMEMBER: name is Jake]
+- User says "i hate mornings" → [REMEMBER: hates mornings]
+- User says "im trying to lose weight" → [REMEMBER: trying to lose weight]
+- User says "my best friend is marcus" → [REMEMBER: best friend named Marcus]
+
+Wrong — never do this:
+- [REMEMBER: something about the user]
+- [REMEMBER: specific fact]
+- [REMEMBER: e.g. plays Valorant]
+- [REMEMBER: user mentioned their location]
+
+One tag per fact. Multiple tags if multiple facts. Real words only.
+${userInfo}${memoryInfo}
+
+Be Hunter. Not an assistant pretending to be Hunter. Actually be him.`
+}
+
+// ── MEMORY EXTRACTION ──
+function extractMemory(text) {
+  const matches = [...text.matchAll(/\[REMEMBER:\s*(.+?)\]/gi)]
+  if (matches.length > 0) {
+    matches.forEach(match => {
+      const fact = match[1].trim()
+      if (
+        fact.includes('e.g.') ||
+        fact.includes('example') ||
+        fact.includes('...') ||
+        fact.includes('specific fact') ||
+        fact.includes('something about') ||
+        fact.includes('user mentioned') ||
+        fact.length < 4
+      ) return
+      const exists = memory.some(m => m.text.toLowerCase() === fact.toLowerCase())
+      if (!exists) {
+        memory.push({ id: Date.now() + Math.random(), text: fact, timestamp: new Date().toISOString() })
+      }
+    })
+    saveJSON(MEMORY_FILE, memory)
+    renderMemoryPanel()
+    graphInited = false
+    renderGraph()
+  }
+  return text.replace(/\[REMEMBER:.*?\]/gi, '').trim()
+}
+
+// ── THREADS ──
+function renderThreads() {
+  const list = document.getElementById('thread-list')
+  list.innerHTML = ''
+  chats.forEach(c => {
+    const div = document.createElement('div')
+    div.className = 'thread' + (c.id === activeId ? ' active' : '')
+    div.innerHTML = `<span class="thread-name">${c.name}</span><button class="del-thread" data-id="${c.id}">×</button>`
+    div.querySelector('.thread-name').onclick = () => { activeId = c.id; renderThreads(); renderMessages() }
+    div.querySelector('.del-thread').onclick = e => { e.stopPropagation(); deleteChat(c.id) }
+    list.appendChild(div)
+  })
+}
+
+function deleteChat(id) {
+  chats = chats.filter(c => c.id !== id)
+  if (chats.length === 0) chats = [{ id: nextId++, name: 'new conversation', messages: [] }]
+  if (activeId === id) activeId = chats[0].id
+  saveJSON(CHATS_FILE, chats)
+  renderThreads()
+  renderMessages()
+}
+
+// ── MESSAGES ──
+function renderMessages() {
+  const el = document.getElementById('messages')
+  el.innerHTML = ''
+  const chat = getActive()
+  if (!chat || chat.messages.length === 0) {
+    addBubbleToDom('ai', 'what uppppp, ask me anything')
+  } else {
+    chat.messages.forEach(m => addBubbleToDom(m.role === 'assistant' ? 'ai' : 'user', m.content))
+  }
+}
+
+function addBubbleToDom(role, text) {
+  const el = document.getElementById('messages')
+  const wrap = document.createElement('div')
+  wrap.className = `msg ${role}`
+  wrap.innerHTML = `<div class="msg-label">${role === 'ai' ? 'Huntwr' : 'You'}</div><div class="bubble">${text.replace(/\n/g, '<br>')}</div>`
+  el.appendChild(wrap)
+  el.scrollTop = el.scrollHeight
+}
+
+function showTyping() {
+  const el = document.getElementById('messages')
+  const wrap = document.createElement('div')
+  wrap.className = 'msg ai'; wrap.id = 'typing'
+  wrap.innerHTML = `<div class="msg-label">Huntwr</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`
+  el.appendChild(wrap)
+  el.scrollTop = el.scrollHeight
+}
+function removeTyping() { document.getElementById('typing')?.remove() }
+
+// ── SEND ──
+async function send() {
+  const inputEl = document.getElementById('userinput')
+  const text = inputEl.value.trim()
+  if (!text || isWaiting) return
+  isWaiting = true
+  inputEl.value = ''; inputEl.style.height = 'auto'
+
+  const chat = getActive()
+  if (chat.messages.length === 0) {
+    chat.name = text.slice(0, 26) + (text.length > 26 ? '...' : '')
+    renderThreads()
+  }
+
+  chat.messages.push({ role: 'user', content: text })
+  addBubbleToDom('user', text)
+  showTyping()
+
+  try {
+    const model = settings.model || 'llama3'
+    const res = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'system', content: buildPersona() }, ...chat.messages],
+        stream: false
+      })
+    })
+    const data = await res.json()
+    let reply = data.message?.content || 'yo something broke frfr'
+    reply = extractMemory(reply)
+    removeTyping()
+    chat.messages.push({ role: 'assistant', content: reply })
+    addBubbleToDom('ai', reply)
+    saveJSON(CHATS_FILE, chats)
+  } catch {
+    removeTyping()
+    addBubbleToDom('ai', 'bro are we deaduzz — make sure ollama is running')
+  }
+
+  isWaiting = false
+}
+
+// ── MEMORY PANEL ──
+function renderMemoryPanel() {
+  const el = document.getElementById('memory-items')
+  el.innerHTML = ''
+  if (memory.length === 0) {
+    el.innerHTML = `<div style="font-size:12px;font-style:italic;color:var(--subtle);padding:8px;">no memories yet — just start chatting</div>`
+    return
+  }
+  memory.forEach(m => {
+    const div = document.createElement('div')
+    div.className = 'memory-item'
+    div.dataset.id = m.id
+    div.innerHTML = `
+      <div style="flex:1">
+        <div class="memory-text">${m.text}</div>
+        <div class="memory-tag">${new Date(m.timestamp).toLocaleDateString()}</div>
+      </div>
+      <button class="del-memory" data-id="${m.id}">×</button>
+    `
+    div.querySelector('.del-memory').onclick = () => {
+      deleteMemory(m.id)
+    }
+    el.appendChild(div)
+  })
+}
+
+function deleteMemory(id) {
+  memory = memory.filter(m => m.id !== id)
+  saveJSON(MEMORY_FILE, memory)
+  renderMemoryPanel()
+  graphInited = false
+  renderGraph()
+}
+
+function highlightNode(id) {
+  document.querySelectorAll('.memory-item').forEach(el => {
+    el.classList.toggle('highlighted', el.dataset.id == id)
+  })
+  const target = document.querySelector(`.memory-item[data-id="${id}"]`)
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+// ── GRAPH ──
+const CATEGORIES = {
+  gaming:   { keywords: ['game','gaming','play','valorant','fps','steam','console','xbox','playstation','nintendo','league','fortnite','apex'], label: 'Gaming' },
+  food:     { keywords: ['eat','food','cook','restaurant','hungry','meal','drink','coffee','pizza','sushi','breakfast','lunch','dinner'], label: 'Food' },
+  music:    { keywords: ['music','song','listen','artist','album','playlist','rap','rock','pop','beats','spotify'], label: 'Music' },
+  work:     { keywords: ['work','job','career','school','study','class','college','uni','boss','project','internship'], label: 'Work' },
+  people:   { keywords: ['friend','family','mom','dad','brother','sister','girlfriend','boyfriend','people','bro','crew'], label: 'People' },
+  hobbies:  { keywords: ['hobby','gym','workout','sport','run','draw','art','read','book','film','movie','watch','travel'], label: 'Hobbies' },
+  goals:    { keywords: ['goal','want','dream','plan','future','hope','trying','working on','build','start','launch'], label: 'Goals' },
+  feelings: { keywords: ['feel','feeling','happy','sad','stress','anxious','excited','tired','mood','emotion','love','hate'], label: 'Feelings' },
+}
+
+function detectCategory(text) {
+  const lower = text.toLowerCase()
+  let best = null, bestCount = 0
+  for (const [key, cat] of Object.entries(CATEGORIES)) {
+    const count = cat.keywords.filter(k => lower.includes(k)).length
+    if (count > bestCount) { bestCount = count; best = key }
+  }
+  return bestCount > 0 ? best : null
+}
+
+function shortLabel(text, max = 14) {
+  const words = text.split(' ')
+  let out = ''
+  for (const w of words) {
+    if ((out + w).length > max) break
+    out += (out ? ' ' : '') + w
+  }
+  return out + (out.length < text.length ? '…' : '')
+}
+
+let nodes = [], edges = [], animFrame
+let graphInited = false
+let hoveredNode = null
+let dragNode = null
+let panX = 0, panY = 0
+let panStartX = 0, panStartY = 0
+let isPanning = false
+let zoom = 1
+let selectedNode = null
+
+function buildGraph() {
+  nodes = []
+  edges = []
+
+  nodes.push({
+    id: 'user',
+    label: shortLabel(settings.name || 'you', 10),
+    fullText: settings.name ? `This is ${settings.name}` : 'You',
+    x: 0, y: 0, vx: 0, vy: 0, r: 20, type: 'user', fixed: true
+  })
+
+  const catMap = {}
+  memory.forEach(m => {
+    const cat = detectCategory(m.text)
+    if (cat) {
+      if (!catMap[cat]) catMap[cat] = []
+      catMap[cat].push(m.id)
+    }
+  })
+
+  const catKeys = Object.keys(catMap)
+  catKeys.forEach((cat, i) => {
+    const angle = (i / catKeys.length) * Math.PI * 2
+    const dist = 160
+    nodes.push({
+      id: `cat_${cat}`,
+      label: CATEGORIES[cat].label,
+      fullText: `Topic: ${CATEGORIES[cat].label} — ${catMap[cat].length} related memor${catMap[cat].length === 1 ? 'y' : 'ies'}`,
+      x: Math.cos(angle) * dist,
+      y: Math.sin(angle) * dist,
+      vx: 0, vy: 0, r: 14, type: 'category', catKey: cat
+    })
+    edges.push({ a: 'user', b: `cat_${cat}`, strength: 120 })
+  })
+
+  memory.forEach(m => {
+    const cat = detectCategory(m.text)
+    const parentId = cat && catMap[cat] ? `cat_${cat}` : 'user'
+    const parent = nodes.find(n => n.id === parentId)
+    const angle = Math.random() * Math.PI * 2
+    const dist = 90 + Math.random() * 40
+    nodes.push({
+      id: m.id,
+      label: shortLabel(m.text, 16),
+      fullText: m.text,
+      x: (parent?.x || 0) + Math.cos(angle) * dist,
+      y: (parent?.y || 0) + Math.sin(angle) * dist,
+      vx: 0, vy: 0, r: 7, type: 'memory', category: cat
+    })
+    edges.push({ a: parentId, b: m.id, strength: 80 })
+  })
+
+  const memNodes = nodes.filter(n => n.type === 'memory')
+  for (let i = 0; i < memNodes.length; i++) {
+    for (let j = i + 1; j < memNodes.length; j++) {
+      const a = memNodes[i], b = memNodes[j]
+      if (a.category && a.category === b.category) continue
+      const wa = new Set(a.fullText.toLowerCase().split(/\W+/).filter(w => w.length > 4))
+      const wb = b.fullText.toLowerCase().split(/\W+/).filter(w => w.length > 4)
+      if (wb.filter(w => wa.has(w)).length >= 1) {
+        edges.push({ a: a.id, b: b.id, weak: true, strength: 220 })
+      }
+    }
+  }
+}
+
+function getCanvasPos(canvas, clientX, clientY) {
+  const rect = canvas.getBoundingClientRect()
+  return {
+    x: (clientX - rect.left - rect.width / 2 - panX) / zoom,
+    y: (clientY - rect.top - rect.height / 2 - panY) / zoom
+  }
+}
+
+function showNodeDetail(node) {
+  let panel = document.getElementById('node-detail')
+  if (!panel) {
+    panel = document.createElement('div')
+    panel.id = 'node-detail'
+    panel.style.cssText = `position:absolute;bottom:20px;left:20px;background:#faf9f7;border:1px solid #d4cfc6;border-radius:3px;padding:14px 16px;font-family:'Times New Roman',Times,serif;max-width:240px;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,0.07);`
+    document.getElementById('graph-container').appendChild(panel)
+  }
+  const typeLabel = node.type === 'category' ? 'Topic' : node.type === 'user' ? 'You' : 'Memory'
+  panel.innerHTML = `
+    <div style="font-size:9px;color:#9a9488;letter-spacing:2px;font-variant:small-caps;margin-bottom:6px;">${typeLabel}</div>
+    <div style="font-size:13px;color:#1a1816;line-height:1.6;font-style:italic;">${node.fullText}</div>
+    ${node.type === 'memory' ? `<div style="margin-top:10px;font-size:10px;color:#c8c2b8;cursor:pointer;" id="del-node-btn">× forget this</div>` : ''}
+  `
+  if (node.type === 'memory') {
+    panel.querySelector('#del-node-btn').onclick = () => {
+      deleteMemory(node.id)
+      panel.remove()
+      selectedNode = null
+    }
+  }
+  panel.style.display = 'block'
+}
+
+function hideNodeDetail() {
+  const p = document.getElementById('node-detail')
+  if (p) p.remove()
+}
+
+function resetGraphView() {
+  panX = 0
+  panY = 0
+  zoom = 1
+}
+
+function runGraph() {
+  const canvas = document.getElementById('graph-canvas')
+  const container = document.getElementById('graph-container')
+  const ctx = canvas.getContext('2d')
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1
+    const w = container.clientWidth
+    const h = container.clientHeight
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    canvas.style.width = w + 'px'
+    canvas.style.height = h + 'px'
+  }
+  resize()
+  new ResizeObserver(resize).observe(container)
+
+  let tooltip = document.getElementById('graph-tooltip')
+  if (!tooltip) {
+    tooltip = document.createElement('div')
+    tooltip.id = 'graph-tooltip'
+    tooltip.style.cssText = `position:absolute;background:#faf9f7;border:1px solid #e8e4dc;border-radius:3px;padding:6px 10px;font-size:11px;font-family:'Times New Roman',Times,serif;font-style:italic;color:#1a1816;max-width:180px;line-height:1.5;pointer-events:none;display:none;z-index:100;`
+    container.appendChild(tooltip)
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    mouseDownPos = { x: e.clientX, y: e.clientY }
+    const pos = getCanvasPos(canvas, e.clientX, e.clientY)
+    const hit = nodes.find(n => !n.fixed && Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 6)
+    if (hit) {
+      dragNode = hit; hit.vx = 0; hit.vy = 0
+      canvas.style.cursor = 'grabbing'
+    } else {
+      isPanning = true
+      panStartX = e.clientX - panX
+      panStartY = e.clientY - panY
+      canvas.style.cursor = 'grabbing'
+    }
+  })
+
+  canvas.addEventListener('mousemove', e => {
+    const pos = getCanvasPos(canvas, e.clientX, e.clientY)
+    if (dragNode) {
+      dragNode.x = pos.x; dragNode.y = pos.y
+      dragNode.vx = 0; dragNode.vy = 0
+      tooltip.style.display = 'none'
+      return
+    }
+    if (isPanning) {
+      panX = e.clientX - panStartX
+      panY = e.clientY - panStartY
+      return
+    }
+    hoveredNode = nodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 4) || null
+    canvas.style.cursor = hoveredNode ? 'pointer' : 'grab'
+    if (hoveredNode) {
+      const rect = canvas.getBoundingClientRect()
+      tooltip.style.display = 'block'
+      tooltip.style.left = (e.clientX - rect.left + 14) + 'px'
+      tooltip.style.top = (e.clientY - rect.top - 10) + 'px'
+      tooltip.textContent = hoveredNode.fullText
+    } else {
+      tooltip.style.display = 'none'
+    }
+  })
+
+  let mouseDownPos = null
+
+  canvas.addEventListener('mouseup', e => {
+    const wasDragging = !!dragNode
+    const wasPanning = isPanning
+    dragNode = null
+    isPanning = false
+    canvas.style.cursor = hoveredNode ? 'pointer' : 'grab'
+
+    const moved = mouseDownPos && (Math.abs(e.clientX - mouseDownPos.x) > 4 || Math.abs(e.clientY - mouseDownPos.y) > 4)
+    if (!wasDragging && !wasPanning && !moved) {
+      const pos = getCanvasPos(canvas, e.clientX, e.clientY)
+      const hit = nodes.find(n => Math.hypot(n.x - pos.x, n.y - pos.y) < n.r + 4)
+      if (hit) {
+        selectedNode = selectedNode?.id === hit.id ? null : hit
+        if (selectedNode) {
+          showNodeDetail(selectedNode)
+          if (hit.type === 'memory') highlightNode(hit.id)
+        } else {
+          hideNodeDetail()
+        }
+      } else {
+        selectedNode = null
+        hideNodeDetail()
+      }
+    }
+    mouseDownPos = null
+  })
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault()
+    zoom = Math.max(0.2, Math.min(4, zoom * (e.deltaY < 0 ? 1.1 : 0.9)))
+  }, { passive: false })
+
+  canvas.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none'
+    dragNode = null
+    isPanning = false
+    canvas.style.cursor = 'grab'
+  })
+
+  canvas.style.cursor = 'grab'
+
+  function tick() {
+    nodes.forEach(n => {
+      if (n === dragNode || n.fixed) return
+      n.vx *= 0.82; n.vy *= 0.82
+      nodes.forEach(m => {
+        if (m.id === n.id) return
+        const dx = n.x - m.x, dy = n.y - m.y
+        const d = Math.max(Math.hypot(dx, dy), 1)
+        const rep = n.type === 'memory' ? 600 : 1200
+        n.vx += (dx / d) * (rep / (d * d))
+        n.vy += (dy / d) * (rep / (d * d))
+      })
+      n.vx -= n.x * 0.002
+      n.vy -= n.y * 0.002
+    })
+
+    edges.forEach(e => {
+      const a = nodes.find(n => n.id === e.a)
+      const b = nodes.find(n => n.id === e.b)
+      if (!a || !b) return
+      const dx = b.x - a.x, dy = b.y - a.y
+      const d = Math.max(Math.hypot(dx, dy), 1)
+      const target = e.strength || 140
+      const f = (d - target) * 0.018
+      const fx = (dx / d) * f, fy = (dy / d) * f
+      if (!a.fixed && a !== dragNode) { a.vx += fx; a.vy += fy }
+      if (!b.fixed && b !== dragNode) { b.vx -= fx; b.vy -= fy }
+    })
+
+    nodes.forEach(n => {
+      if (n.fixed || n === dragNode) return
+      n.x += n.vx; n.y += n.vy
+    })
+
+    draw()
+    animFrame = requestAnimationFrame(tick)
+  }
+
+  function draw() {
+    const dpr = window.devicePixelRatio || 1
+    const w = parseInt(canvas.style.width) || container.clientWidth
+    const h = parseInt(canvas.style.height) || container.clientHeight
+    const panelW = 280
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.save()
+    ctx.scale(dpr, dpr)
+    ctx.translate((w - panelW) / 2 + panX, h / 2 + panY)
+    ctx.scale(zoom, zoom)
+
+    edges.forEach(e => {
+      const a = nodes.find(n => n.id === e.a)
+      const b = nodes.find(n => n.id === e.b)
+      if (!a || !b) return
+      ctx.beginPath()
+      ctx.moveTo(a.x, a.y)
+      ctx.lineTo(b.x, b.y)
+      ctx.strokeStyle = e.weak ? '#ede8e0' : '#d4cfc6'
+      ctx.lineWidth = e.weak ? 0.5 : 1
+      ctx.stroke()
+    })
+
+    nodes.forEach(n => {
+      const isHovered = hoveredNode?.id === n.id
+      const isSelected = selectedNode?.id === n.id
+
+      if (isSelected) {
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, n.r + 5, 0, Math.PI * 2)
+        ctx.strokeStyle = '#9a9488'
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([3, 3])
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
+
+      ctx.beginPath()
+      ctx.arc(n.x, n.y, n.r + (isHovered ? 2 : 0), 0, Math.PI * 2)
+      if (n.type === 'user') ctx.fillStyle = '#1a1816'
+      else if (n.type === 'category') ctx.fillStyle = isSelected ? '#5a5550' : isHovered ? '#7a7470' : '#9a9488'
+      else ctx.fillStyle = isSelected ? '#9a9488' : isHovered ? '#b0a898' : '#c8c2b8'
+      ctx.fill()
+
+      ctx.textAlign = 'center'
+      if (n.type === 'user') {
+        ctx.fillStyle = '#faf9f7'
+        ctx.font = 'bold 9px Times New Roman'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(n.label, n.x, n.y)
+      } else if (n.type === 'category') {
+        ctx.fillStyle = '#faf9f7'
+        ctx.font = 'bold 9px Times New Roman'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(n.label, n.x, n.y)
+      } else {
+        ctx.fillStyle = '#5a5550'
+        ctx.font = '10px Times New Roman'
+        ctx.textBaseline = 'top'
+        ctx.fillText(n.label, n.x, n.y + n.r + 3)
+      }
+    })
+
+    ctx.restore()
+
+    if (memory.length === 0) {
+      ctx.save()
+      ctx.fillStyle = '#c8c2b8'
+      ctx.font = 'italic 13px Times New Roman'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('memories will appear here as you chat', (w - panelW) / 2, h / 2 + 50)
+      ctx.restore()
+    }
+  }
+
+  if (animFrame) cancelAnimationFrame(animFrame)
+  tick()
+}
+
+function renderGraph() {
+  buildGraph()
+  resetGraphView()
+  if (animFrame) cancelAnimationFrame(animFrame)
+  graphInited = true
+  runGraph()
+}
+
+// ── SETTINGS ──
+function loadSettings() {
+  document.getElementById('s-name').value = settings.name || ''
+  document.getElementById('s-age').value = settings.age || ''
+  document.getElementById('s-location').value = settings.location || ''
+  document.getElementById('s-job').value = settings.job || ''
+  document.getElementById('s-interests').value = settings.interests || ''
+  document.getElementById('s-extra').value = settings.extra || ''
+  document.getElementById('s-model').value = settings.model || 'llama3'
+}
+
+document.getElementById('save-settings').onclick = () => {
+  settings = {
+    name: document.getElementById('s-name').value,
+    age: document.getElementById('s-age').value,
+    location: document.getElementById('s-location').value,
+    job: document.getElementById('s-job').value,
+    interests: document.getElementById('s-interests').value,
+    extra: document.getElementById('s-extra').value,
+    model: document.getElementById('s-model').value || 'llama3'
+  }
+  saveJSON(SETTINGS_FILE, settings)
+  const note = document.getElementById('saved-note')
+  note.classList.add('show')
+  setTimeout(() => note.classList.remove('show'), 2000)
+}
+
+// ── NAV ──
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.onclick = () => {
+    const view = btn.dataset.view
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    document.getElementById('chat-view').style.display = view === 'chat' ? 'flex' : 'none'
+    document.getElementById('memory-view').classList.toggle('active', view === 'memory')
+    document.getElementById('settings-view').classList.toggle('active', view === 'settings')
+    if (view === 'memory') {
+      renderMemoryPanel()
+      if (animFrame) cancelAnimationFrame(animFrame)
+      graphInited = false
+      renderGraph()
+    }
+    if (view === 'settings') loadSettings()
+  }
+})
+
+// ── NEW CHAT ──
+document.getElementById('new-chat').onclick = () => {
+  const c = { id: nextId++, name: 'new conversation', messages: [] }
+  chats.unshift(c)
+  activeId = c.id
+  saveJSON(CHATS_FILE, chats)
+  renderThreads()
+  renderMessages()
+}
+
+// ── INPUT ──
+document.getElementById('sendbtn').onclick = send
+document.getElementById('userinput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
+})
+document.getElementById('userinput').addEventListener('input', function () {
+  this.style.height = 'auto'
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px'
+})
+
+// ── SEED MEMORY FOR TESTING (remove when done) ──
+// uncomment this block, reload once, then comment it back out
+/*
+memory = [
+  { id: 1, text: 'plays Valorant every day', timestamp: new Date().toISOString() },
+  { id: 2, text: 'loves pizza and sushi', timestamp: new Date().toISOString() },
+  { id: 3, text: 'wants to build apps for a living', timestamp: new Date().toISOString() },
+  { id: 4, text: 'listens to rap music while gaming', timestamp: new Date().toISOString() },
+  { id: 5, text: 'goes to the gym three times a week', timestamp: new Date().toISOString() },
+  { id: 6, text: 'studying computer science', timestamp: new Date().toISOString() },
+  { id: 7, text: 'best friend is named Marcus', timestamp: new Date().toISOString() },
+  { id: 8, text: 'wants to start a gaming youtube channel', timestamp: new Date().toISOString() },
+  { id: 9, text: 'drinks coffee every morning', timestamp: new Date().toISOString() },
+  { id: 10, text: 'feeling stressed about finals', timestamp: new Date().toISOString() },
+]
+saveJSON(MEMORY_FILE, memory)
+*/
+
+// ── INIT ──
+renderThreads()
+renderMessages()
+loadSettings()
+</script>
+</body>
+</html>
