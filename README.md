@@ -4,6 +4,18 @@ A locally-run AI desktop app that talks like me. Built with Electron and powered
 
 It ships as a normal desktop app: on first launch it detects, installs, and starts Ollama automatically, pulls the model, then opens straight into a chat UI with a persistent memory system and a live, force-directed memory graph.
 
+<p align="center">
+  <img src="screenshots/memory.png" width="800" alt="Memory graph — force-directed graph of extracted memories, grouped into category hubs">
+  <br>
+  <sub>The memory graph — every fact the model has picked up, clustered into category hubs, draggable and pannable in real time</sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/main.png" width="800" alt="Chat interface">
+  <br>
+  <sub>The chat interface</sub>
+</p>
+
 ## Features
 
 - **Local-first** — runs entirely on-device via Ollama, no cloud calls, no accounts
@@ -53,6 +65,14 @@ Outputs to `dist/`:
 - **`loading.html`** — startup screen shown while Ollama is being checked or installed.
 
 User data (conversations, extracted memories, settings) is stored outside the repo in `~/.huntwrgpt/` and never touches the project directory.
+
+### Why inline memory tags instead of a separate extraction pass
+
+Memory could be extracted by making a second, dedicated call after every turn — a focused prompt whose only job is "here's the message, return any facts as JSON." That's the more reliable design: a purpose-built prompt is easier to control and less likely to drift or hallucinate than instructions bolted onto a conversational one.
+
+I went with inline `[REMEMBER: ...]` tags instead, appended to the same completion that generates the reply. The reason is that this app runs a small model entirely on-device, so every extra round trip is a real, felt cost — there's no fast cloud inference to hide a second call behind. Folding extraction into the existing generation means memory capture is effectively free: one token stream, one request, no added latency, no extra failure mode to handle if the second call times out or the connection drops mid-conversation.
+
+The tradeoff is reliability: the model has to remember to append tags correctly on every single turn without a dedicated verification step, so the parsing side has to compensate. `extractMemory()` uses `matchAll` (not `match`) to catch multiple tags per response, filters out placeholder text the model sometimes echoes from its own instructions (`"something about"`, `"e.g."`), and dedup uses Jaccard similarity on normalized word sets rather than exact string matching, since the same fact tends to get re-tagged with slightly different phrasing across turns. It's a bet that latency and simplicity matter more than extraction precision for a single-user local app — and that the failure mode (an occasional missed or duplicate memory) is cheap, recoverable, and already covered by manual add/delete in the UI.
 
 ## License
 
