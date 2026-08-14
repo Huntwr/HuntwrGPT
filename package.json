@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "HuntwrGPT - AI that talks like Hunter",
   "author": "Hunter",
+  "license": "MIT",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
